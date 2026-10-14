@@ -11,7 +11,7 @@
 [data-theme=dark]{--bg:#0A1522;--sf:#122033;--tx:#E6EEF8;--mu:#8198B4;--ac:#5CA8FF;--me:#1E3D62;--ln:#1D3149;--tk:#5F7796;--rd:#53BDEB;color-scheme:dark}
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;overflow:hidden}
-body{background:var(--bg);color:var(--tx);font:16px/1.4 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,"iOS Emoji","Apple Color Emoji","Segoe UI Emoji",sans-serif;-webkit-font-smoothing:antialiased}
+body{background:var(--bg);color:var(--tx);font:500 16px/1.4 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,"iOS Emoji","Apple Color Emoji","Segoe UI Emoji",sans-serif;-webkit-font-smoothing:antialiased}
 button,input{font:inherit;color:inherit}
 button{cursor:pointer;background:none;border:0;padding:0;display:inline-grid;place-items:center}
 input{outline:none}
@@ -38,21 +38,23 @@ input:focus{border-color:var(--ac)}
 .lk{color:var(--ac);font-size:15px;text-align:center;display:block;padding:2px}
 .err{color:var(--er);font-size:14px;min-height:1em}
 .ok{color:var(--ac);font-size:14px;min-height:1em}
-.av{width:44px;height:44px;border-radius:50%;background:var(--me);color:var(--ac);display:grid;place-items:center;font-weight:600;font-size:18px;overflow:hidden}
+.av{width:44px;height:44px;border-radius:50%;background:var(--me);color:var(--ac);display:grid;place-items:center;font-weight:700;font-size:18px;overflow:hidden}
 .av img{width:100%;height:100%;object-fit:cover}
 .big .av{width:72px;height:72px;font-size:28px}
 .wrap{position:relative;flex:none}
 .dot{position:absolute;right:0;bottom:0;width:12px;height:12px;border-radius:50%;background:var(--ok);border:2px solid var(--sf)}
 .layout{height:100%;display:grid;grid-template-columns:340px 1fr}
 .side{background:var(--sf);border-right:1px solid var(--ln);display:flex;flex-direction:column;min-height:0}
-.main{display:flex;flex-direction:column;min-height:0;position:relative}
+.main{display:flex;flex-direction:column;min-height:0;position:relative;overflow:hidden}
+.main::before{content:"";position:absolute;inset:-24px;background:var(--wall,none) center/cover no-repeat;filter:var(--wblur,none);z-index:0}
+.main>*{position:relative;z-index:1}
 .bar{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--sf);border-bottom:1px solid var(--ln);min-height:64px}
 .iconbtn{width:38px;height:38px;border-radius:50%;color:var(--ac);flex:none}
 .iconbtn:hover{background:var(--bg)}
 .list{overflow:auto;flex:1}
 .item{display:flex;gap:12px;align-items:center;padding:12px 14px;cursor:pointer}
 .item:hover,.item.on{background:var(--bg)}
-.badge{background:var(--ac);color:#fff;border-radius:999px;min-width:22px;height:22px;padding:0 7px;font-size:12px;font-weight:600;display:grid;place-items:center}
+.badge{background:var(--ac);color:#fff;border-radius:999px;min-width:22px;height:22px;padding:0 7px;font-size:12px;font-weight:700;display:grid;place-items:center}
 #empty{margin:auto;color:var(--mu);text-align:center;padding:20px}
 .chat{flex:1;display:flex;flex-direction:column;min-height:0}
 .msgs{flex:1;overflow:auto;padding:14px 14px 6px;display:flex;flex-direction:column;gap:6px}
@@ -63,18 +65,15 @@ input:focus{border-color:var(--ac)}
 .meta{display:flex;justify-content:flex-end;align-items:center;gap:3px;font-size:11px;color:var(--mu);margin-top:2px;white-space:nowrap}
 .tk{width:16px;height:12px;flex:none}
 .media{display:block;width:240px;max-width:100%;border-radius:12px;cursor:zoom-in}
-.bub audio{width:240px;max-width:100%;height:36px}
 .composer{display:flex;align-items:center;gap:6px;padding:8px 10px;padding-bottom:calc(8px + env(safe-area-inset-bottom,0px));background:var(--sf);border-top:1px solid var(--ln)}
 .composer input{flex:1;min-width:0;padding:10px 14px;border-radius:999px;border:1px solid var(--ln);background:var(--bg)}
 .emo{display:flex;flex-wrap:wrap;gap:2px;padding:6px;background:var(--sf);border-top:1px solid var(--ln)}
 .emo button{width:40px;height:40px;font-size:24px}
-.vn{display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--sf);border-top:1px solid var(--ln)}
-.vn audio{flex:1;min-width:0;height:36px}
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.35);display:grid;place-items:center;padding:16px;z-index:10}
 .sheet{width:100%;max-width:400px;background:var(--sf);border-radius:22px;padding:22px;display:grid;gap:10px;max-height:90vh;overflow:auto}
 .seg{display:grid;grid-template-columns:1fr 1fr;background:var(--bg);border-radius:12px;padding:3px}
 .seg button{padding:8px;border-radius:10px;display:block}
-.seg button.on{background:var(--sf);color:var(--ac);font-weight:600}
+.seg button.on{background:var(--sf);color:var(--ac);font-weight:700}
 #status.isOn{color:var(--ok)}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--tx);color:var(--sf);padding:10px 16px;border-radius:12px;font-size:14px;z-index:20;max-width:90vw}
 @media (max-width:760px){.layout{grid-template-columns:1fr}body.chatopen .side{display:none}body:not(.chatopen) .main{display:none}}
@@ -122,19 +121,11 @@ input:focus{border-color:var(--ac)}
         <div class="grow"><b class="trunc" id="hname"></b><div class="sm muted trunc" id="status"></div></div>
       </div>
       <div class="msgs" id="msgs"></div>
-      <div class="vn hide" id="vn">
-        <button class="iconbtn" id="vn-main" title="Mulai merekam"></button>
-        <span id="vn-time">0:00</span>
-        <audio id="vn-audio" controls class="hide"></audio>
-        <button class="btn sm gh" id="vn-cancel">Batal</button>
-        <button class="btn sm hide" id="vn-send">Kirim</button>
-      </div>
       <div class="emo hide" id="emo"></div>
       <form class="composer" id="composer">
         <button type="button" class="iconbtn" id="btn-clip" title="Kirim foto" data-i="clip"></button>
         <button type="button" class="iconbtn" id="btn-emo" title="Emoji" data-i="smile"></button>
         <input type="text" id="txt" placeholder="Tulis pesan" autocomplete="off" maxlength="2000">
-        <button type="button" class="iconbtn" id="btn-vn" title="Pesan suara" data-i="mic"></button>
         <button class="iconbtn" title="Kirim" style="color:var(--ac)" data-i="send"></button>
       </form>
       <input type="file" id="file" accept="image/jpeg,image/png,image/webp,image/gif" hidden>
@@ -152,6 +143,9 @@ input:focus{border-color:var(--ac)}
     <div class="row"><input type="text" id="p-uid" maxlength="20" autocapitalize="off"><button class="btn sm" id="p-uid-save">Ganti</button></div>
     <span class="sm muted">Tema</span>
     <div class="seg" id="p-theme"><button data-t="light">Terang</button><button data-t="dark">Gelap</button></div>
+    <span class="sm muted">Wallpaper chat</span>
+    <div class="row"><button class="btn sm gh" id="w-pick">Pilih dari galeri</button><button class="btn sm gh" id="w-clear">Hapus</button><input type="file" id="w-file" accept="image/*" hidden></div>
+    <div class="row hide" id="w-choice"><span class="sm muted grow">Tampilan:</span><button class="btn sm" data-wb="0">Normal</button><button class="btn sm" data-wb="1">Blur</button><button class="btn sm gh" id="w-cancel">Batal</button></div>
   </div>
 </div>
 
@@ -165,8 +159,6 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const I={
  clip:'<svg viewBox="0 0 24 24"><path d="M21 11.5 12.5 20a5.5 5.5 0 0 1-7.8-7.8L13 4.9a3.7 3.7 0 0 1 5.2 5.2l-8.5 8.5a1.8 1.8 0 0 1-2.6-2.6l7.8-7.8"/></svg>',
  send:'<svg viewBox="0 0 24 24"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4z"/></svg>',
- mic:'<svg viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4"/></svg>',
- stop:'<svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2" fill="currentColor"/></svg>',
  smile:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01"/></svg>',
  back:'<svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>',
  x:'<svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg>',
@@ -184,8 +176,7 @@ const dayLabel=t=>{
  const d=new Date(t),n=new Date(),diff=Math.round((new Date(n.toDateString())-new Date(d.toDateString()))/864e5);
  return diff===0?'Hari ini':diff===1?'Kemarin':d.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
 };
-const fmtDur=s=>`${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,'0')}`;
-const preview=m=>!m?'Belum ada pesan':m.kind==='image'?'Foto':m.kind==='audio'?'Pesan suara':m.body;
+const preview=m=>!m?'Belum ada pesan':m.kind==='image'?'Foto':m.body;
 const av=p=>`<div class="av">${p?.avatar_path?`<img src="${sb.storage.from('avatars').getPublicUrl(p.avatar_path).data.publicUrl}" alt="">`:esc((p?.nickname||'?').charAt(0).toUpperCase())}</div>`;
 
 function humanErr(e){
@@ -206,7 +197,7 @@ function uidErr(e){
 }
 function toast(t){const e=$('#toast');e.textContent=t;e.classList.remove('hide');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.add('hide'),3200);}
 
-let me=null,profile=null,mode='login',recovering=false,chan=null,curId=null,curOther=null,msgs=new Map(),convs=[],pendingHTML='',typingOn=false,typingT,lt,stm,lastT=0,rec=null,chunks=[],vnBlob=null,vnURL=null,vnDur=0,recT0=0,recTm=0,vnState='idle';
+let me=null,profile=null,mode='login',recovering=false,chan=null,curId=null,curOther=null,msgs=new Map(),convs=[],pendingHTML='',typingOn=false,typingT,lt,stm,lastT=0,pendingWall=null;
 const online=new Set(),urlCache=new Map();
 
 /* ---------- AUTH ---------- */
@@ -279,14 +270,15 @@ async function enterApp(user){
  const {data,error}=await sb.from('profiles').select('*').eq('id',user.id).single();
  if(error||!data){toast('Profil tidak ditemukan. Coba masuk lagi.');await sb.auth.signOut();return;}
  me=user;profile=data;
- applyTheme(profile.theme);renderMe();
+ applyTheme(profile.theme);renderMe();applyWall();
  $('#auth').classList.add('hide');$('#app').classList.remove('hide');
  connect();
  await loadChats();
 }
 function leaveApp(){
- me=null;profile=null;curId=null;curOther=null;msgs=new Map();convs=[];online.clear();pendingHTML='';
+ me=null;profile=null;curId=null;curOther=null;msgs=new Map();convs=[];online.clear();pendingHTML='';pendingWall=null;
  if(chan){sb.removeChannel(chan);chan=null;}
+ document.documentElement.style.setProperty('--wall','none');
  document.body.classList.remove('chatopen');
  $('#chat').classList.add('hide');$('#empty').classList.remove('hide');
  $('#modal').classList.add('hide');$('#app').classList.add('hide');$('#auth').classList.remove('hide');
@@ -317,12 +309,10 @@ async function markDelivered(id){
 }
 function onMsg(p){
  const m=p.new;
- // pesan sampai ke HP ini: centang dua abu
  if(m.sender_id!==me.id&&!m.delivered_at)markDelivered(m.id);
  if(m.conversation_id===curId){
   msgs.set(m.id,m);
   renderMsgs(m.sender_id===me.id);
-  // dibaca hanya kalau chat ini sedang dibuka dan layar aktif
   if(m.sender_id!==me.id&&!m.read_at&&!document.hidden)markRead();
  }
  scheduleList();
@@ -414,7 +404,6 @@ function tick(m){
 function bubble(m){
  const mine=m.sender_id===me.id;
  const body=m.kind==='image'?`<img class="media" data-path="${esc(m.storage_path)}" alt="Foto" onclick="window.open(this.src)">`
-  :m.kind==='audio'?`<audio controls preload="metadata" data-path="${esc(m.storage_path)}"></audio>`
   :`<div>${esc(m.body)}</div>`;
  return `<div class="bub ${mine?'mine':'theirs'}">${body}<div class="meta">${hm(m.created_at)}${tick(m)}</div></div>`;
 }
@@ -466,74 +455,24 @@ $('#emo').onclick=e=>{
  t.focus();t.setSelectionRange(s+ins.length,s+ins.length);
 };
 
-/* ---------- FOTO & KIRIM FILE ---------- */
+/* ---------- KIRIM FOTO ---------- */
 $('#btn-clip').onclick=()=>$('#file').click();
-$('#file').onchange=e=>{const f=e.target.files[0];e.target.value='';if(f)sendMedia(f,'image',null);};
-async function sendMedia(blob,kind,dur){
+$('#file').onchange=e=>{const f=e.target.files[0];e.target.value='';if(f)sendImage(f);};
+async function sendImage(f){
  if(!curId)return;
- if(kind==='image'&&(!/^image\/(jpeg|png|webp|gif)$/.test(blob.type)||blob.size>10*1048576))
-  return toast('Pilih foto JPG, PNG, WEBP, atau GIF maksimal 10 MB.');
- const ext=(blob.type.split('/')[1]||'bin').replace('jpeg','jpg');
- const cid=curId,path=`${cid}/${crypto.randomUUID()}.${ext}`;
+ if(!/^image\/(jpeg|png|webp|gif)$/.test(f.type)||f.size>10*1048576)return toast('Pilih foto JPG, PNG, WEBP, atau GIF maksimal 10 MB.');
+ const cid=curId,path=`${cid}/${crypto.randomUUID()}.${f.type.split('/')[1].replace('jpeg','jpg')}`;
  pendingHTML='<div class="bub mine">Mengunggah…</div>';renderMsgs(true);
  try{
-  const {error:e1}=await sb.storage.from('chat-media').upload(path,blob,{contentType:blob.type});
+  const {error:e1}=await sb.storage.from('chat-media').upload(path,f,{contentType:f.type});
   pendingHTML='';
   if(e1){renderMsgs();return toast('Gagal mengunggah: '+e1.message);}
-  const {data,error:e2}=await sb.from('messages').insert({conversation_id:cid,sender_id:me.id,kind,storage_path:path,duration:dur}).select().single();
+  const {data,error:e2}=await sb.from('messages').insert({conversation_id:cid,sender_id:me.id,kind:'image',storage_path:path}).select().single();
   if(e2){renderMsgs();return toast('Gagal mengirim: '+e2.message);}
   if(curId===cid)msgs.set(data.id,data);
   renderMsgs(true);scheduleList();
  }catch(err){pendingHTML='';renderMsgs();toast('Gagal mengirim: '+err.message);}
 }
-
-/* ---------- PESAN SUARA ---------- */
-const VN_MIME=['audio/webm;codecs=opus','audio/webm','audio/mp4','audio/ogg;codecs=opus'];
-function vnSet(s){
- vnState=s;
- $('#vn-main').innerHTML=s==='rec'?I.stop:I.mic;
- $('#vn-main').title=s==='rec'?'Berhenti':'Mulai merekam';
- $('#vn-audio').classList.toggle('hide',s!=='prev');
- $('#vn-time').classList.toggle('hide',s==='prev');
- $('#vn-send').classList.toggle('hide',s!=='prev');
-}
-function vnReset(){
- vnBlob=null;
- if(vnURL){URL.revokeObjectURL(vnURL);vnURL=null;}
- $('#vn-audio').removeAttribute('src');$('#vn-time').textContent='0:00';
-}
-function vnClose(){
- if(rec&&rec.state!=='inactive'){rec.onstop=null;rec.stop();rec.stream.getTracks().forEach(t=>t.stop());}
- clearInterval(recTm);vnReset();vnSet('idle');
- $('#vn').classList.add('hide');
-}
-$('#btn-vn').onclick=()=>{$('#vn').classList.remove('hide');vnReset();vnSet('idle');};
-$('#vn-cancel').onclick=vnClose;
-$('#vn-send').onclick=()=>{const b=vnBlob,d=vnDur;if(!b)return;vnClose();sendMedia(b,'audio',d);};
-$('#vn-main').onclick=async()=>{
- if(vnState==='rec'){rec.stop();return;}
- if(vnState==='prev')vnReset();
- if(!window.isSecureContext)return toast('Rekam suara hanya bisa dibuka lewat https:// atau localhost.');
- if(!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder)return toast('Browser ini belum mendukung rekam suara.');
- let stream;
- try{stream=await navigator.mediaDevices.getUserMedia({audio:true});}
- catch(err){return toast(err.name==='NotAllowedError'?'Izin mikrofon ditolak. Aktifkan di pengaturan browser.':'Mikrofon tidak bisa dipakai: '+err.message);}
- const mime=VN_MIME.find(t=>MediaRecorder.isTypeSupported(t))||'';
- chunks=[];
- rec=new MediaRecorder(stream,mime?{mimeType:mime}:{});
- rec.ondataavailable=e=>{if(e.data.size)chunks.push(e.data);};
- rec.onstop=()=>{
-  stream.getTracks().forEach(t=>t.stop());clearInterval(recTm);
-  if(!chunks.length){toast('Rekaman kosong, coba lagi.');return vnSet('idle');}
-  vnBlob=new Blob(chunks,{type:(rec.mimeType||mime||'audio/webm').split(';')[0]});
-  vnDur=Math.max(1,Math.round((Date.now()-recT0)/1000));
-  vnURL=URL.createObjectURL(vnBlob);
-  $('#vn-audio').src=vnURL;
-  vnSet('prev');
- };
- recT0=Date.now();rec.start(250);vnSet('rec');
- recTm=setInterval(()=>$('#vn-time').textContent=fmtDur((Date.now()-recT0)/1000),250);
-};
 
 /* ---------- PROFIL ---------- */
 function applyTheme(t){document.documentElement.dataset.theme=t==='dark'?'dark':'light';}
@@ -554,6 +493,7 @@ function renderMe(){
 const openProfile=()=>{
  if(!profile)return;
  $('#p-nick').value=profile.nickname;$('#p-uid').value=profile.uid_code;
+ $('#w-choice').classList.add('hide');pendingWall=null;
  $('#modal').classList.remove('hide');
 };
 $('#me-av').onclick=openProfile;
@@ -585,6 +525,46 @@ $('#p-uid-save').onclick=async()=>{
  if(error)return toast(uidErr(error));
  profile.uid_code=u;renderMe();toast('ID berhasil diganti.');
 };
+
+/* ---------- WALLPAPER ---------- */
+$('#w-pick').onclick=()=>$('#w-file').click();
+$('#w-file').onchange=e=>{
+ const f=e.target.files[0];e.target.value='';if(!f)return;
+ if(!/^image\/(jpeg|png|webp|gif)$/.test(f.type)||f.size>5*1048576)return toast('Pilih gambar JPG, PNG, WEBP, atau GIF maksimal 5 MB.');
+ pendingWall=f;$('#w-choice').classList.remove('hide');
+};
+$('#w-cancel').onclick=()=>{pendingWall=null;$('#w-choice').classList.add('hide');};
+document.querySelectorAll('[data-wb]').forEach(b=>b.onclick=()=>saveWall(b.dataset.wb==='1'));
+async function saveWall(blur){
+ const f=pendingWall;if(!f||!me)return;
+ const path=`${me.id}/wall-${Date.now()}.${f.type.split('/')[1].replace('jpeg','jpg')}`;
+ const {error:e1}=await sb.storage.from('wallpapers').upload(path,f,{contentType:f.type});
+ if(e1)return toast('Gagal menyimpan wallpaper: '+e1.message);
+ const old=profile.wallpaper_path;
+ const {error:e2}=await sb.from('profiles').update({wallpaper_path:path,wallpaper_blur:blur}).eq('id',me.id);
+ if(e2)return toast(e2.message);
+ if(old)await sb.storage.from('wallpapers').remove([old]);
+ pendingWall=null;$('#w-choice').classList.add('hide');
+ profile.wallpaper_path=path;profile.wallpaper_blur=blur;
+ await applyWall();toast('Wallpaper diperbarui.');
+}
+$('#w-clear').onclick=async()=>{
+ const old=profile.wallpaper_path;
+ if(!old)return toast('Belum ada wallpaper.');
+ const {error}=await sb.from('profiles').update({wallpaper_path:null,wallpaper_blur:false}).eq('id',me.id);
+ if(error)return toast(error.message);
+ await sb.storage.from('wallpapers').remove([old]);
+ profile.wallpaper_path=null;profile.wallpaper_blur=false;
+ await applyWall();toast('Wallpaper dihapus.');
+};
+async function applyWall(){
+ const st=document.documentElement.style;
+ if(!profile?.wallpaper_path){st.setProperty('--wall','none');st.setProperty('--wblur','none');return;}
+ const {data}=await sb.storage.from('wallpapers').createSignedUrl(profile.wallpaper_path,86400);
+ if(!data)return;
+ st.setProperty('--wall',`url("${data.signedUrl}")`);
+ st.setProperty('--wblur',profile.wallpaper_blur?'blur(14px) brightness(.92)':'none');
+}
 
 /* ---------- HEARTBEAT: terakhir dilihat ---------- */
 async function beat(){if(me)await sb.from('profiles').update({last_seen:new Date().toISOString()}).eq('id',me.id);}
