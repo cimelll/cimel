@@ -1,0 +1,1202 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Nimbus Chat</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f6f1fb; --panel:#fffdfb; --line:#efe7fa;
+    --text:#3b3350; --muted:#6f6788;
+    --brand:#7c5cc4; --brand-soft:#e4d8fa; --pink:#ffd9e6; --mint:#d8f3e6;
+    --online:#4cd18a; --online-text:#1f8a5b; --read:#2f9be8;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;font-family:'Nunito',system-ui,sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
+  button,input,textarea{font:inherit;color:inherit}
+  .hidden{display:none !important}
+
+  /* ---------- Auth & setup ---------- */
+  .center{min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:20px}
+  .card{width:min(400px,100%);background:#fff;border-radius:28px;padding:32px 28px;box-shadow:0 20px 60px rgba(124,92,196,.14)}
+  .logo{width:56px;height:56px;border-radius:18px;background:var(--brand-soft);display:flex;align-items:center;justify-content:center;margin-bottom:14px}
+  .card h1{margin:0 0 4px;font-size:26px;font-weight:800}
+  .lead{margin:0 0 20px;color:var(--muted);font-size:15px}
+  .field{margin-bottom:14px}
+  .field label{display:block;font-size:13px;font-weight:700;color:var(--muted);margin-bottom:6px}
+  .field input[type=text],.field input[type=email],.field input:not([type]){width:100%;padding:14px 16px;border-radius:16px;border:2px solid var(--line);background:#fcfaff;font-size:16px}
+  .field input:focus{outline:none;border-color:var(--brand)}
+  .btn{width:100%;padding:14px;border:0;border-radius:16px;background:var(--brand);color:#fff;font-weight:800;font-size:16px;cursor:pointer}
+  .btn.soft{background:var(--brand-soft);color:var(--text)}
+  .btn:disabled{opacity:.55;cursor:not-allowed}
+  .row2{display:flex;justify-content:space-between;margin-top:12px}
+  .link{background:none;border:0;color:var(--brand);font-weight:700;cursor:pointer;padding:4px 0}
+  .link:disabled{color:var(--muted);cursor:not-allowed}
+  .err{color:#b4325a;font-size:14px;min-height:20px;margin:12px 0 0}
+  .warn{background:#fff0c9;color:#5c4400;padding:12px 16px;text-align:center;font-weight:700}
+
+  /* ---------- Avatar ---------- */
+  .avw{position:relative;flex:none}
+  .avw .av{width:100%;height:100%;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--text);text-transform:uppercase}
+  .avimg{width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;background:var(--bg)}
+  .dot{position:absolute;right:0;bottom:0;width:13px;height:13px;border-radius:50%;background:var(--online);border:2.5px solid #fff}
+  .avbtn{border:0;background:none;padding:0;cursor:pointer;border-radius:50%;flex:none;position:relative}
+  .avbtn::after{content:'';position:absolute;inset:0;border-radius:50%;box-shadow:0 0 0 0 var(--brand-soft);transition:box-shadow .2s}
+  .avbtn:hover::after,.avbtn:focus-visible::after{box-shadow:0 0 0 4px var(--brand-soft)}
+
+  /* ---------- App ---------- */
+  .app{display:grid;grid-template-columns:360px 1fr;height:100dvh;max-width:1400px;margin:0 auto;background:var(--panel)}
+  .sidebar{display:flex;flex-direction:column;border-right:1px solid var(--line);min-height:0;background:var(--panel)}
+  .side-head{display:flex;align-items:center;gap:12px;padding:16px 16px 10px}
+  .me{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.25}
+  .me b{font-size:17px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .me span{font-size:12px;color:var(--muted)}
+  .icon{width:40px;height:40px;border-radius:14px;border:0;background:var(--bg);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;flex:none}
+  .icon:hover{background:var(--brand-soft)}
+  .icon.on{background:var(--brand-soft)}
+  .search{position:relative;margin:6px 16px 10px}
+  .search svg{position:absolute;left:14px;top:50%;transform:translateY(-50%)}
+  .search input{width:100%;padding:12px 16px 12px 42px;border:0;border-radius:16px;background:var(--bg);font-size:15px}
+  .search input:focus{outline:2px solid var(--brand-soft)}
+  .list{flex:1;overflow-y:auto;padding:4px 8px 12px}
+  .hint{padding:24px 16px;color:var(--muted);text-align:center;font-size:14px}
+  .sec{padding:10px 12px 4px;font-size:12px;font-weight:800;letter-spacing:1px;color:var(--muted);text-transform:uppercase}
+  .item{width:100%;display:flex;align-items:center;gap:12px;padding:10px 12px;border:0;background:transparent;border-radius:18px;cursor:pointer;text-align:left}
+  .item:hover{background:var(--bg)}
+  .item.active{background:var(--brand-soft)}
+  .mid{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.3}
+  .mid b{font-size:15px}
+  .mid .prev{display:flex;align-items:center;gap:5px;font-size:13px;color:var(--muted);min-width:0}
+  .mid .ptx{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+  .meta{display:flex;flex-direction:column;align-items:flex-end;gap:4px;font-size:12px;color:var(--muted)}
+  .badge{min-width:20px;height:20px;padding:0 6px;border-radius:10px;background:var(--brand);color:#fff;font-weight:800;font-size:12px;display:inline-flex;align-items:center;justify-content:center}
+
+  .tick{flex:none;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;stroke:#8a82a3}
+  .tick.read{stroke:var(--read)}
+
+  .chatpane{display:flex;flex-direction:column;min-height:0;min-width:0}
+  .empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--muted);text-align:center;padding:24px;background:var(--bg)}
+  .empty .logo{width:72px;height:72px;border-radius:24px;margin:0}
+  .chat{flex:1;display:flex;flex-direction:column;min-height:0}
+  .chat-head{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line);background:var(--panel)}
+  .who{display:flex;flex-direction:column;line-height:1.25;min-width:0}
+  .who b{font-size:17px}
+  .status{font-size:12px;color:var(--muted)}
+  .status.on{color:var(--online-text);font-weight:700}
+  .back{display:none}
+  .msgs{flex:1;overflow-y:auto;padding:18px 16px;display:flex;flex-direction:column;gap:6px;
+    background-color:#f8f3fd;background-image:radial-gradient(#eadff7 1.6px,transparent 1.6px);background-size:24px 24px}
+  .day{align-self:center;margin:10px 0 6px;padding:4px 14px;border-radius:999px;background:#fff;color:var(--muted);font-size:12px;font-weight:700}
+  .msg{max-width:min(78%,520px);padding:8px 12px 6px;border-radius:18px;font-size:15px;line-height:1.45;box-shadow:0 1px 0 rgba(60,40,100,.05)}
+  .msg::after{content:'';display:block;clear:both}
+  .msg.in{align-self:flex-start;background:#fff;border-bottom-left-radius:6px}
+  .msg.out{align-self:flex-end;background:var(--brand-soft);border-bottom-right-radius:6px}
+  .txt{white-space:pre-wrap;word-break:break-word}
+  .time{float:right;margin:8px 0 0 12px;font-size:11px;color:var(--muted);display:inline-flex;align-items:center;gap:4px;line-height:1}
+  .msg.media{padding:4px 4px 6px}
+  .msg.media .cap{padding:6px 8px 0}
+  .msg.media .time{margin:4px 6px 0 10px}
+  .mimg{border-radius:15px;overflow:hidden;background:#efe8fb;cursor:zoom-in;max-width:100%}
+  .mimg img{display:block;width:100%;height:100%;object-fit:cover}
+  .msg.sticker{background:transparent;box-shadow:none;padding:0}
+  .stk{width:150px;height:150px}
+  .stk img{display:block;width:100%;height:100%;object-fit:contain}
+  .msg.sticker .time{float:none;width:fit-content;margin:2px 0 0 auto;padding:3px 9px;background:rgba(255,255,255,.9);border-radius:999px}
+
+  .tray{border-top:1px solid var(--line);background:var(--panel);padding:10px 14px 12px;max-height:230px;display:flex;flex-direction:column}
+  .tray-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+  .tray-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(74px,1fr));gap:8px;overflow-y:auto}
+  .tile{position:relative;aspect-ratio:1;border-radius:16px;background:var(--bg);border:0;padding:4px;cursor:pointer}
+  .tile img{width:100%;height:100%;object-fit:contain;display:block}
+  .tile.add{background:transparent;border:2px dashed var(--brand-soft);color:var(--brand);font-weight:800;font-size:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+  .tile .del{position:absolute;top:-4px;right:-4px;width:22px;height:22px;border-radius:50%;background:#b4325a;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;line-height:1}
+
+  .composer{display:flex;align-items:flex-end;gap:8px;padding:12px 14px calc(12px + env(safe-area-inset-bottom));background:var(--panel);border-top:1px solid var(--line)}
+  .composer .icon{width:46px;height:46px;border-radius:50%}
+  .composer textarea{flex:1;min-width:0;resize:none;border:0;background:var(--bg);border-radius:22px;padding:12px 16px;font-size:16px;max-height:120px;line-height:1.4}
+  .composer textarea:focus{outline:2px solid var(--brand-soft)}
+  .send{width:46px;height:46px;border-radius:50%;border:0;background:var(--brand);display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none}
+
+  /* ---------- Modal ---------- */
+  .modal-back{position:fixed;inset:0;background:rgba(59,51,80,.5);display:flex;align-items:center;justify-content:center;padding:16px;z-index:20}
+  .modal{background:#fff;border-radius:26px;padding:22px;width:min(420px,100%);max-height:94dvh;overflow:auto}
+  .modal h2{margin:0 0 14px;font-size:20px;font-weight:800}
+  .modal .btns{display:flex;gap:10px;margin-top:14px}
+  .modal .btns .btn{padding:12px}
+  .prevbox{border-radius:18px;overflow:hidden;background:var(--bg);display:flex;justify-content:center}
+  .prevbox img{max-width:100%;max-height:46dvh;display:block}
+  .cap-in{width:100%;margin-top:12px;padding:12px 16px;border:2px solid var(--line);border-radius:16px;background:#fcfaff;font-size:15px}
+  .cap-in:focus{outline:none;border-color:var(--brand)}
+  .pf-center{display:flex;flex-direction:column;align-items:center;gap:6px;margin-bottom:16px}
+  .pf-center b{font-size:18px}
+  .pf-center span{color:var(--muted);font-size:13px}
+  .stk-canvas{display:block;width:min(300px,100%);aspect-ratio:1;margin:0 auto;border-radius:20px;touch-action:none;cursor:grab;
+    background-color:#fff;
+    background-image:linear-gradient(45deg,#eee 25%,transparent 25%),linear-gradient(-45deg,#eee 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#eee 75%),linear-gradient(-45deg,transparent 75%,#eee 75%);
+    background-size:20px 20px;background-position:0 0,0 10px,10px -10px,-10px 0}
+  .stk-canvas:active{cursor:grabbing}
+  .chips{display:flex;gap:8px;margin:14px 0 4px;flex-wrap:wrap}
+  .chip{padding:8px 14px;border-radius:999px;border:2px solid var(--line);background:#fff;font-weight:700;font-size:14px;cursor:pointer}
+  .chip.on{border-color:var(--brand);background:var(--brand-soft)}
+  .ctl{display:flex;align-items:center;gap:12px;margin-top:10px;font-size:14px;font-weight:700;color:var(--muted)}
+  .ctl input[type=range]{flex:1;accent-color:var(--brand)}
+  .ctl input[type=checkbox]{width:18px;height:18px;accent-color:var(--brand)}
+  .small-hint{font-size:12px;color:var(--muted);text-align:center;margin:8px 0 0}
+  .lb{background:rgba(30,24,45,.92);cursor:zoom-out}
+  .lb img{max-width:96vw;max-height:92dvh;border-radius:12px;display:block}
+  .toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);background:var(--text);color:#fff;padding:10px 18px;border-radius:14px;font-size:14px;opacity:0;pointer-events:none;transition:.25s;z-index:30;max-width:90vw}
+  .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  @media (max-width:760px){
+    .app{grid-template-columns:1fr}
+    .chatpane{display:none}
+    .app.show-chat .sidebar{display:none}
+    .app.show-chat .chatpane{display:flex}
+    .back{display:inline-flex}
+    .msg{max-width:84%}
+  }
+</style>
+</head>
+<body>
+
+<div id="configWarn" class="warn hidden">Isi SUPABASE_URL dan SUPABASE_ANON_KEY di bagian script dulu, lalu muat ulang halaman.</div>
+
+<!-- Masuk -->
+<main id="auth" class="center hidden">
+  <div class="card">
+    <div class="logo">
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#7c5cc4" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 18a4 4 0 0 1-.6-7.96A6 6 0 0 1 18 9.5a4.25 4.25 0 0 1-.5 8.5H7z"/></svg>
+    </div>
+    <h1>Nimbus</h1>
+    <p class="lead">Ngobrol santai sama teman. Masuk pakai email, kode dikirim ke Gmail kamu.</p>
+
+    <div id="stepEmail">
+      <div class="field">
+        <label for="email">Email</label>
+        <input id="email" type="email" inputmode="email" autocomplete="email" placeholder="kamu@gmail.com">
+      </div>
+      <button class="btn" id="btnSend">Kirim kode</button>
+    </div>
+
+    <div id="stepCode" class="hidden">
+      <p class="lead" style="margin-bottom:14px">Kode dikirim ke <b id="sentTo"></b></p>
+      <div class="field">
+        <label for="code">Kode verifikasi</label>
+        <input id="code" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="123456">
+      </div>
+      <button class="btn" id="btnVerify">Masuk</button>
+      <div class="row2">
+        <button class="link" id="btnResend">Kirim ulang</button>
+        <button class="link" id="btnChange">Ganti email</button>
+      </div>
+    </div>
+    <p class="err" id="authErr" role="alert"></p>
+  </div>
+</main>
+
+<!-- Buat nick -->
+<main id="setup" class="center hidden">
+  <div class="card">
+    <h1>Pilih nick kamu</h1>
+    <p class="lead">Nick ini jadi ID kamu. Teman mencari kamu lewat nick ini.</p>
+    <div class="field">
+      <label for="nick">Nick</label>
+      <input id="nick" autocomplete="off" autocapitalize="none" maxlength="20" placeholder="contoh: luna.s">
+    </div>
+    <button class="btn" id="btnNick">Simpan</button>
+    <p class="lead" style="margin:12px 0 0;font-size:13px">3-20 karakter: huruf kecil, angka, titik, atau garis bawah.</p>
+    <p class="err" id="nickErr" role="alert"></p>
+  </div>
+</main>
+
+<!-- Aplikasi -->
+<div id="app" class="app hidden">
+  <aside class="sidebar">
+    <div class="side-head">
+      <button class="avbtn" id="btnProfile" aria-label="Profil saya"></button>
+      <div class="me"><b id="meNick"></b><span>Ketuk foto untuk mengganti</span></div>
+      <button class="icon" id="btnLogout" aria-label="Keluar">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6f6788" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+      </button>
+    </div>
+    <div class="search">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6f6788" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      <input id="search" type="search" placeholder="Cari nick teman" autocomplete="off" aria-label="Cari nick teman">
+    </div>
+    <div id="list" class="list"></div>
+  </aside>
+
+  <section class="chatpane">
+    <div id="empty" class="empty">
+      <div class="logo">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#7c5cc4" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 18a4 4 0 0 1-.6-7.96A6 6 0 0 1 18 9.5a4.25 4.25 0 0 1-.5 8.5H7z"/></svg>
+      </div>
+      <b>Pilih chat atau cari nick teman</b>
+      <span>Pesan masuk muncul langsung tanpa perlu muat ulang.</span>
+    </div>
+
+    <div id="chat" class="chat hidden">
+      <header class="chat-head">
+        <button class="icon back" id="btnBack" aria-label="Kembali">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3b3350" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <div id="cAvatar"></div>
+        <div class="who"><b id="cNick"></b><span id="cStatus" class="status"></span></div>
+      </header>
+      <div id="msgs" class="msgs"></div>
+
+      <div id="tray" class="tray hidden">
+        <div class="tray-head">
+          <b>Stikerku</b>
+          <button type="button" class="link" id="btnTrayEdit">Hapus</button>
+        </div>
+        <div id="trayGrid" class="tray-grid"></div>
+      </div>
+
+      <form id="composer" class="composer">
+        <button type="button" class="icon" id="btnImg" aria-label="Kirim foto">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6f6788" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+        </button>
+        <button type="button" class="icon" id="btnStk" aria-label="Stiker">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6f6788" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><path d="M9 9h.01M15 9h.01" stroke-width="2.6"/></svg>
+        </button>
+        <textarea id="input" rows="1" maxlength="2000" placeholder="Ketik pesan" aria-label="Pesan"></textarea>
+        <button class="send" type="submit" aria-label="Kirim">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+        </button>
+      </form>
+    </div>
+  </section>
+</div>
+
+<input id="fileImg" type="file" accept="image/*" class="hidden">
+<input id="fileAvatar" type="file" accept="image/*" class="hidden">
+<input id="fileSticker" type="file" accept="image/*" class="hidden">
+
+<!-- Modal: profil -->
+<div id="mProfile" class="modal-back hidden">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="pfTitle">
+    <h2 id="pfTitle">Profil saya</h2>
+    <div class="pf-center">
+      <div id="pfAvatar"></div>
+      <b id="pfNick"></b>
+      <span>Foto diambil dari galeri, dipotong jadi persegi.</span>
+    </div>
+    <button class="btn" id="btnPickAvatar">Pilih foto dari galeri</button>
+    <div class="btns">
+      <button class="btn soft" id="btnDelAvatar">Hapus foto</button>
+      <button class="btn soft" data-close>Tutup</button>
+    </div>
+    <p class="err" id="pfErr" role="alert"></p>
+  </div>
+</div>
+
+<!-- Modal: kirim foto -->
+<div id="mImage" class="modal-back hidden">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="imgTitle">
+    <h2 id="imgTitle">Kirim foto</h2>
+    <div class="prevbox"><img id="imgPrev" alt="Pratinjau foto"></div>
+    <input id="imgCap" class="cap-in" maxlength="500" placeholder="Tambah keterangan (opsional)" aria-label="Keterangan foto">
+    <div class="btns">
+      <button class="btn soft" data-close>Batal</button>
+      <button class="btn" id="btnImgSend">Kirim</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: buat stiker -->
+<div id="mSticker" class="modal-back hidden">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="stkTitle">
+    <h2 id="stkTitle">Buat stiker</h2>
+    <div id="stkPick">
+      <p class="lead">Pilih gambar dari galeri, lalu atur bentuk, zoom, dan teksnya.</p>
+      <button class="btn" id="btnPickSticker">Pilih gambar</button>
+    </div>
+    <div id="stkEdit" class="hidden">
+      <canvas id="stkCanvas" class="stk-canvas" width="512" height="512" aria-label="Pratinjau stiker, geser untuk mengatur posisi"></canvas>
+      <p class="small-hint">Geser gambar untuk mengatur posisi.</p>
+      <div class="chips" id="stkShapes">
+        <button type="button" class="chip on" data-shape="circle">Bulat</button>
+        <button type="button" class="chip" data-shape="round">Kotak</button>
+        <button type="button" class="chip" data-shape="free">Asli</button>
+      </div>
+      <div class="ctl"><span>Zoom</span><input id="stkZoom" type="range" min="1" max="3" step="0.05" value="1" aria-label="Zoom"></div>
+      <div class="ctl"><label for="stkOutline">Garis putih ala stiker</label><input id="stkOutline" type="checkbox" checked></div>
+      <input id="stkText" class="cap-in" maxlength="22" placeholder="Teks di stiker (opsional)" aria-label="Teks stiker">
+      <div class="btns">
+        <button class="btn soft" id="btnStkSave">Simpan</button>
+        <button class="btn" id="btnStkSend">Simpan &amp; kirim</button>
+      </div>
+    </div>
+    <div class="btns" id="stkCancel"><button class="btn soft" data-close>Tutup</button></div>
+  </div>
+</div>
+
+<!-- Lightbox -->
+<div id="lb" class="modal-back lb hidden"><img id="lbImg" alt="Foto"></div>
+
+<div id="toast" class="toast" role="status"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function(){
+  'use strict';
+
+  /* ====== ISI DUA BARIS INI (Supabase -> Project Settings -> API) ====== */
+  var SUPABASE_URL = 'https://rxydkooczxrwqqrbjaly.supabase.co';
+  var SUPABASE_ANON_KEY = 'sb_publishable_qHhIQ5xgOA3qZ1EOIzSp4Q_6r_g1n31';
+  /* ==================================================================== */
+
+  function $(id){ return document.getElementById(id); }
+  function h(tag, cls, text){
+    var e = document.createElement(tag);
+    if(cls) e.className = cls;
+    if(text != null) e.textContent = text;
+    return e;
+  }
+
+  if(/GANTI/.test(SUPABASE_URL + SUPABASE_ANON_KEY)){
+    $('configWarn').classList.remove('hidden');
+    return;
+  }
+
+  var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  var PCOLS = 'id,nick,avatar_url,last_seen';
+
+  var me = null, myProfile = null, activeId = null;
+  var profiles = {};     // id -> profil
+  var msgs = {};         // otherId -> [pesan]
+  var loaded = {};       // otherId -> riwayat penuh sudah dimuat
+  var online = {};       // id -> true (presence)
+  var urlCache = {};     // path -> {url, t}
+  var stickers = [];     // koleksi stikerku
+  var trayEdit = false;
+  var msgChannel = null, presenceCh = null, beatTimer = null;
+  var started = false, authEmail = '', cd = null, searchTimer = null;
+
+  /* ---------- util ---------- */
+  var toastTimer = null;
+  function toast(t){
+    var el = $('toast'); el.textContent = t; el.classList.add('on');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ el.classList.remove('on'); }, 2800);
+  }
+  function setMsg(id, t){ $(id).textContent = t || ''; }
+  function showScreen(name){
+    ['auth','setup','app'].forEach(function(s){ $(s).classList.toggle('hidden', s !== name); });
+  }
+  function uuid(){
+    return (window.crypto && crypto.randomUUID) ? crypto.randomUUID()
+      : Date.now().toString(36) + Math.random().toString(36).slice(2);
+  }
+  function isVisible(){ return document.visibilityState === 'visible'; }
+
+  var PALETTE = ['#ffd9e6','#d8f3e6','#dfe7ff','#fff0c9','#e4d8fa','#ffe0d1'];
+  function avatar(p, size, dot){
+    p = p || {nick: '?'};
+    var w = h('div', 'avw');
+    w.style.width = w.style.height = size + 'px';
+    if(p.avatar_url){
+      var im = h('img', 'avimg'); im.alt = ''; im.src = p.avatar_url;
+      w.appendChild(im);
+    } else {
+      var n = p.nick || '?', sum = 0;
+      for(var i = 0; i < n.length; i++) sum += n.charCodeAt(i);
+      var a = h('div', 'av', n.charAt(0));
+      a.style.fontSize = Math.round(size * 0.42) + 'px';
+      a.style.background = PALETTE[sum % PALETTE.length];
+      w.appendChild(a);
+    }
+    if(dot && p.id && online[p.id]) w.appendChild(h('span', 'dot'));
+    return w;
+  }
+
+  function fmtTime(iso){
+    return new Date(iso).toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'});
+  }
+  function dayLabel(iso){
+    var d = new Date(iso), n = new Date(), y = new Date(n);
+    y.setDate(n.getDate() - 1);
+    if(d.toDateString() === n.toDateString()) return 'Hari ini';
+    if(d.toDateString() === y.toDateString()) return 'Kemarin';
+    return d.toLocaleDateString('id-ID', {day:'numeric', month:'long', year:'numeric'});
+  }
+
+  /* ---------- centang ---------- */
+  function msgState(m){ return m.read_at ? 'read' : (m.delivered_at ? 'delivered' : 'sent'); }
+  var STATE_LABEL = {sent: 'Terkirim', delivered: 'Sampai', read: 'Dibaca'};
+  function tickEl(state, small){
+    var NS = 'http://www.w3.org/2000/svg';
+    var s = document.createElementNS(NS, 'svg');
+    s.setAttribute('viewBox', '0 0 17 12');
+    s.setAttribute('width', small ? '14' : '17');
+    s.setAttribute('height', small ? '10' : '12');
+    s.setAttribute('class', 'tick ' + state);
+    s.setAttribute('role', 'img');
+    s.setAttribute('aria-label', STATE_LABEL[state]);
+    function path(d){ var p = document.createElementNS(NS, 'path'); p.setAttribute('d', d); s.appendChild(p); }
+    path('M1 6.5L4.3 9.8L10.7 2.5');
+    if(state !== 'sent') path('M5.3 6.5L8.6 9.8L15 2.5');
+    return s;
+  }
+
+  /* ---------- gambar: baca, ubah ukuran ---------- */
+  async function loadBitmap(file){
+    if(!/^image\//.test(file.type)) throw new Error('File harus berupa gambar');
+    if(file.size > 20 * 1024 * 1024) throw new Error('Ukuran gambar maksimal 20 MB');
+    if(window.createImageBitmap){
+      try{
+        var b = await createImageBitmap(file, {imageOrientation: 'from-image'});
+        return {src: b, w: b.width, h: b.height};
+      }catch(e){}
+    }
+    return new Promise(function(res, rej){
+      var u = URL.createObjectURL(file), im = new Image();
+      im.onload = function(){ res({src: im, w: im.naturalWidth, h: im.naturalHeight}); URL.revokeObjectURL(u); };
+      im.onerror = function(){ rej(new Error('Gagal membaca gambar')); };
+      im.src = u;
+    });
+  }
+  function toBlob(c, type, q){ return new Promise(function(r){ c.toBlob(r, type, q); }); }
+  async function fitJpeg(bmp, max){
+    var s = Math.min(1, max / Math.max(bmp.w, bmp.h));
+    var w = Math.round(bmp.w * s), hh = Math.round(bmp.h * s);
+    var c = document.createElement('canvas'); c.width = w; c.height = hh;
+    var x = c.getContext('2d');
+    x.fillStyle = '#fff'; x.fillRect(0, 0, w, hh);
+    x.drawImage(bmp.src, 0, 0, w, hh);
+    return {blob: await toBlob(c, 'image/jpeg', 0.82), w: w, h: hh};
+  }
+
+  /* ---------- URL media (bucket privat) ---------- */
+  function fresh(c){ return c && Date.now() - c.t < 50 * 60 * 1000; }
+  async function ensureUrls(paths){
+    var need = [];
+    paths.forEach(function(p){ if(!fresh(urlCache[p]) && need.indexOf(p) < 0) need.push(p); });
+    if(!need.length) return;
+    var r = await sb.storage.from('chat-media').createSignedUrls(need, 3600);
+    if(r.data) r.data.forEach(function(x){
+      if(x.signedUrl) urlCache[x.path] = {url: x.signedUrl, t: Date.now()};
+    });
+  }
+  function attachImg(box, url){
+    if(box.querySelector('img')) return;
+    var im = h('img');
+    im.alt = box.classList.contains('mimg') ? 'Foto' : 'Stiker';
+    im.src = url;
+    box.appendChild(im);
+  }
+  function hydrate(root){
+    var els = [].slice.call(root.querySelectorAll('[data-path]'));
+    if(!els.length) return;
+    ensureUrls(els.map(function(e){ return e.dataset.path; })).then(function(){
+      els.forEach(function(e){
+        var c = urlCache[e.dataset.path];
+        if(e.isConnected && c) attachImg(e, c.url);
+      });
+    });
+  }
+
+  /* ---------- masuk dengan kode email ---------- */
+  function startCooldown(){
+    var s = 30, b = $('btnResend');
+    b.disabled = true; clearInterval(cd);
+    b.textContent = 'Kirim ulang (' + s + ')';
+    cd = setInterval(function(){
+      s--;
+      if(s <= 0){ clearInterval(cd); b.disabled = false; b.textContent = 'Kirim ulang'; }
+      else b.textContent = 'Kirim ulang (' + s + ')';
+    }, 1000);
+  }
+  async function sendCode(){
+    var emailStepHidden = $('stepEmail').classList.contains('hidden');
+    var email = emailStepHidden ? authEmail : $('email').value.trim().toLowerCase();
+    setMsg('authErr', '');
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ setMsg('authErr', 'Email tidak valid.'); return; }
+    $('btnSend').disabled = true; $('btnResend').disabled = true;
+    var r = await sb.auth.signInWithOtp({email: email, options: {shouldCreateUser: true}});
+    $('btnSend').disabled = false;
+    if(r.error){
+      setMsg('authErr', 'Gagal kirim kode: ' + r.error.message);
+      $('btnResend').disabled = false;
+      return;
+    }
+    authEmail = email;
+    $('sentTo').textContent = email;
+    $('stepEmail').classList.add('hidden');
+    $('stepCode').classList.remove('hidden');
+    $('code').value = ''; $('code').focus();
+    startCooldown();
+  }
+  async function verifyCode(){
+    var token = $('code').value.replace(/\s/g, '');
+    setMsg('authErr', '');
+    if(!/^\d{6,10}$/.test(token)){ setMsg('authErr', 'Masukkan kode angka dari email.'); return; }
+    $('btnVerify').disabled = true;
+    var r = await sb.auth.verifyOtp({email: authEmail, token: token, type: 'email'});
+    $('btnVerify').disabled = false;
+    if(r.error || !r.data || !r.data.user){ setMsg('authErr', 'Kode salah atau sudah kedaluwarsa.'); return; }
+    afterLogin(r.data.user);
+  }
+  $('btnSend').addEventListener('click', sendCode);
+  $('email').addEventListener('keydown', function(e){ if(e.key === 'Enter') sendCode(); });
+  $('btnVerify').addEventListener('click', verifyCode);
+  $('code').addEventListener('keydown', function(e){ if(e.key === 'Enter') verifyCode(); });
+  $('btnResend').addEventListener('click', sendCode);
+  $('btnChange').addEventListener('click', function(){
+    clearInterval(cd);
+    $('stepCode').classList.add('hidden');
+    $('stepEmail').classList.remove('hidden');
+    setMsg('authErr', ''); $('email').focus();
+  });
+
+  /* ---------- profil / nick ---------- */
+  async function afterLogin(user){
+    if(started) return;
+    started = true; me = user;
+    var r = await sb.from('profiles').select(PCOLS).eq('id', user.id).maybeSingle();
+    if(r.error){ started = false; toast('Gagal memuat profil: ' + r.error.message); showScreen('auth'); return; }
+    if(r.data){ myProfile = r.data; startApp(); }
+    else { showScreen('setup'); $('nick').focus(); }
+  }
+  async function saveNick(){
+    var nick = $('nick').value.trim().toLowerCase().replace(/^@/, '');
+    setMsg('nickErr', '');
+    if(!/^[a-z0-9_.]{3,20}$/.test(nick)){
+      setMsg('nickErr', 'Nick 3-20 karakter: huruf kecil, angka, titik, atau garis bawah.');
+      return;
+    }
+    $('btnNick').disabled = true;
+    var r = await sb.from('profiles').insert({id: me.id, nick: nick}).select(PCOLS).single();
+    $('btnNick').disabled = false;
+    if(r.error){
+      setMsg('nickErr', r.error.code === '23505' ? 'Nick sudah dipakai, coba yang lain.' : 'Gagal menyimpan: ' + r.error.message);
+      return;
+    }
+    myProfile = r.data;
+    startApp();
+  }
+  $('btnNick').addEventListener('click', saveNick);
+  $('nick').addEventListener('keydown', function(e){ if(e.key === 'Enter') saveNick(); });
+
+  /* ---------- aplikasi ---------- */
+  function renderMe(){
+    profiles[me.id] = myProfile;
+    $('meNick').textContent = '@' + myProfile.nick;
+    $('btnProfile').textContent = '';
+    $('btnProfile').appendChild(avatar(myProfile, 44, false));
+  }
+
+  async function startApp(){
+    showScreen('app');
+    renderMe();
+    await loadConversations();
+    markDelivered();
+    subscribe();
+    startPresence();
+    loadStickers();
+    renderList();
+  }
+
+  async function loadConversations(){
+    var r = await sb.from('messages').select('*')
+      .or('sender_id.eq.' + me.id + ',receiver_id.eq.' + me.id)
+      .order('created_at', {ascending: false}).limit(500);
+    if(r.error){ toast('Gagal memuat chat: ' + r.error.message); return; }
+    var ids = {};
+    (r.data || []).forEach(function(m){
+      var other = m.sender_id === me.id ? m.receiver_id : m.sender_id;
+      (msgs[other] = msgs[other] || []).push(m);
+      ids[other] = true;
+    });
+    Object.keys(msgs).forEach(function(k){ msgs[k].reverse(); });
+    var need = Object.keys(ids).filter(function(i){ return !profiles[i]; });
+    if(need.length){
+      var p = await sb.from('profiles').select(PCOLS).in('id', need);
+      (p.data || []).forEach(function(x){ profiles[x.id] = x; });
+    }
+  }
+
+  async function markDelivered(){
+    var now = new Date().toISOString();
+    Object.keys(msgs).forEach(function(k){
+      msgs[k].forEach(function(m){ if(m.receiver_id === me.id && !m.delivered_at) m.delivered_at = now; });
+    });
+    await sb.from('messages').update({delivered_at: now}).eq('receiver_id', me.id).is('delivered_at', null);
+  }
+
+  async function markReadRemote(id){
+    if(!isVisible()) return;
+    var rows = (msgs[id] || []).filter(function(m){ return m.sender_id === id && !m.read_at; });
+    if(!rows.length) return;
+    var now = new Date().toISOString();
+    rows.forEach(function(m){ m.read_at = now; if(!m.delivered_at) m.delivered_at = now; });
+    await sb.from('messages').update({read_at: now}).eq('sender_id', id).eq('receiver_id', me.id).is('read_at', null);
+  }
+
+  /* ---------- daftar chat ---------- */
+  function lastTime(id){
+    var a = msgs[id];
+    return a && a.length ? new Date(a[a.length - 1].created_at).getTime() : Date.now();
+  }
+  function unread(id){
+    if(id === activeId && isVisible()) return 0;
+    return (msgs[id] || []).filter(function(m){ return m.sender_id === id && !m.read_at; }).length;
+  }
+  function previewText(m){
+    if(m.kind === 'image') return m.body ? 'Foto: ' + m.body : 'Foto';
+    if(m.kind === 'sticker') return 'Stiker';
+    return m.body;
+  }
+  function chatItem(id){
+    var p = profiles[id] || {nick: '...'};
+    var a = msgs[id] || [], last = a[a.length - 1];
+    var b = h('button', 'item' + (id === activeId ? ' active' : ''));
+    b.type = 'button';
+    b.appendChild(avatar(p, 48, true));
+    var mid = h('div', 'mid');
+    mid.appendChild(h('b', '', '@' + p.nick));
+    var prev = h('span', 'prev');
+    if(last){
+      if(last.sender_id === me.id) prev.appendChild(tickEl(msgState(last), true));
+      prev.appendChild(h('span', 'ptx', previewText(last)));
+    } else prev.appendChild(h('span', 'ptx', 'Mulai ngobrol'));
+    mid.appendChild(prev);
+    b.appendChild(mid);
+    var meta = h('div', 'meta');
+    if(last) meta.appendChild(h('span', '', fmtTime(last.created_at)));
+    var u = unread(id);
+    if(u) meta.appendChild(h('span', 'badge', u > 99 ? '99+' : String(u)));
+    b.appendChild(meta);
+    b.addEventListener('click', function(){ openChat(id); });
+    return b;
+  }
+  function renderList(){
+    if(normQ($('search').value)) return;
+    var list = $('list'); list.textContent = '';
+    var ids = Object.keys(msgs).filter(function(id){ return msgs[id].length || id === activeId; });
+    ids.sort(function(a, b){ return lastTime(b) - lastTime(a); });
+    if(!ids.length){
+      list.appendChild(h('div', 'hint', 'Belum ada chat. Cari nick temanmu di atas untuk mulai ngobrol.'));
+      return;
+    }
+    ids.forEach(function(id){ list.appendChild(chatItem(id)); });
+  }
+
+  /* ---------- cari teman ---------- */
+  function normQ(v){ return v.trim().toLowerCase().replace(/^@/, ''); }
+  async function doSearch(q){
+    if(!q){ renderList(); return; }
+    var esc = q.replace(/[\\%_]/g, '\\$&');
+    var r = await sb.from('profiles').select(PCOLS)
+      .ilike('nick', esc + '%').neq('id', me.id).limit(15);
+    if(normQ($('search').value) !== q) return;
+    var list = $('list'); list.textContent = '';
+    list.appendChild(h('div', 'sec', 'Hasil pencarian'));
+    if(r.error){ list.appendChild(h('div', 'hint', 'Pencarian gagal.')); return; }
+    if(!r.data.length){ list.appendChild(h('div', 'hint', 'Nick tidak ditemukan.')); return; }
+    r.data.forEach(function(p){
+      profiles[p.id] = p;
+      var b = h('button', 'item'); b.type = 'button';
+      b.appendChild(avatar(p, 48, true));
+      var mid = h('div', 'mid'); mid.appendChild(h('b', '', '@' + p.nick));
+      var pv = h('span', 'prev'); pv.appendChild(h('span', 'ptx', online[p.id] ? 'Online' : 'Ketuk untuk mulai chat'));
+      mid.appendChild(pv);
+      b.appendChild(mid);
+      b.addEventListener('click', function(){
+        $('search').value = '';
+        if(!msgs[p.id]){ msgs[p.id] = []; loaded[p.id] = true; }
+        openChat(p.id);
+      });
+      list.appendChild(b);
+    });
+  }
+  $('search').addEventListener('input', function(){
+    clearTimeout(searchTimer);
+    var q = normQ(this.value);
+    searchTimer = setTimeout(function(){ doSearch(q); }, 300);
+  });
+
+  /* ---------- buka chat ---------- */
+  async function loadChat(id){
+    var r = await sb.from('messages').select('*')
+      .or('and(sender_id.eq.' + me.id + ',receiver_id.eq.' + id + '),and(sender_id.eq.' + id + ',receiver_id.eq.' + me.id + ')')
+      .order('created_at', {ascending: false}).limit(300);
+    if(r.error){ toast('Gagal memuat pesan: ' + r.error.message); return; }
+    msgs[id] = (r.data || []).slice().reverse();
+    loaded[id] = true;
+  }
+
+  function updateHeader(){
+    if(!activeId) return;
+    var p = profiles[activeId] || {nick: '...'};
+    var on = !!online[activeId];
+    $('cNick').textContent = '@' + p.nick;
+    $('cAvatar').textContent = '';
+    $('cAvatar').appendChild(avatar(p, 42, true));
+    var st = $('cStatus');
+    st.className = 'status' + (on ? ' on' : '');
+    st.textContent = on ? 'Online'
+      : (p.last_seen ? 'Terakhir dilihat ' + dayLabel(p.last_seen).toLowerCase() + ' ' + fmtTime(p.last_seen) : 'Offline');
+  }
+
+  async function openChat(id){
+    activeId = id;
+    $('search').value = '';
+    $('app').classList.add('show-chat');
+    $('empty').classList.add('hidden');
+    $('chat').classList.remove('hidden');
+    closeTray();
+    updateHeader();
+    sb.from('profiles').select(PCOLS).eq('id', id).maybeSingle().then(function(r){
+      if(r.data){ profiles[id] = r.data; if(activeId === id) updateHeader(); renderList(); }
+    });
+    if(!loaded[id]) await loadChat(id);
+    if(activeId !== id) return;
+    renderMessages();
+    markReadRemote(id);
+    renderList();
+    if(window.matchMedia('(min-width:761px)').matches) $('input').focus();
+  }
+
+  function fitSize(w, hh){
+    w = w || 240; hh = hh || 240;
+    var s = Math.min(1, 260 / w, 320 / hh);
+    return [Math.round(w * s), Math.round(hh * s)];
+  }
+
+  function msgEl(m){
+    var mine = m.sender_id === me.id, kind = m.kind || 'text';
+    var b = h('div', 'msg ' + (mine ? 'out' : 'in') + (kind === 'image' ? ' media' : '') + (kind === 'sticker' ? ' sticker' : ''));
+    if(kind === 'image' || kind === 'sticker'){
+      var box = h('div', kind === 'sticker' ? 'stk' : 'mimg');
+      box.dataset.path = m.media_path;
+      if(kind === 'image'){
+        var d = fitSize(m.media_w, m.media_h);
+        box.style.width = d[0] + 'px'; box.style.height = d[1] + 'px';
+        box.addEventListener('click', function(){
+          var c = urlCache[m.media_path]; if(c) openLightbox(c.url);
+        });
+      }
+      var c = urlCache[m.media_path];
+      if(fresh(c)) attachImg(box, c.url);
+      b.appendChild(box);
+      if(kind === 'image' && m.body) b.appendChild(h('div', 'txt cap', m.body));
+    } else {
+      b.appendChild(h('span', 'txt', m.body));
+    }
+    var t = h('span', 'time', fmtTime(m.created_at));
+    if(mine) t.appendChild(tickEl(msgState(m), false));
+    b.appendChild(t);
+    return b;
+  }
+
+  function renderMessages(){
+    var box = $('msgs'); box.textContent = '';
+    var prev = '';
+    (msgs[activeId] || []).forEach(function(m){
+      var dl = dayLabel(m.created_at);
+      if(dl !== prev){ box.appendChild(h('div', 'day', dl)); prev = dl; }
+      box.appendChild(msgEl(m));
+    });
+    box.scrollTop = box.scrollHeight;
+    hydrate(box);
+  }
+
+  $('btnBack').addEventListener('click', function(){
+    $('app').classList.remove('show-chat');
+    activeId = null;
+    closeTray();
+    $('chat').classList.add('hidden');
+    $('empty').classList.remove('hidden');
+    renderList();
+  });
+
+  /* ---------- kirim & terima ---------- */
+  function pushMessage(m){
+    var other = m.sender_id === me.id ? m.receiver_id : m.sender_id;
+    var a = (msgs[other] = msgs[other] || []);
+    var ex = a.filter(function(x){ return x.id === m.id; })[0];
+    if(ex){ ex.delivered_at = m.delivered_at || ex.delivered_at; ex.read_at = m.read_at || ex.read_at; return other; }
+    a.push(m);
+    a.sort(function(x, y){ return x.id - y.id; });
+    return other;
+  }
+
+  async function onIncoming(m){
+    var other = m.sender_id === me.id ? m.receiver_id : m.sender_id;
+    if(!profiles[other]){
+      var p = await sb.from('profiles').select(PCOLS).eq('id', other).maybeSingle();
+      if(p.data) profiles[other] = p.data;
+    }
+    if(m.receiver_id === me.id && !m.delivered_at){
+      var now = new Date().toISOString();
+      var reading = activeId === other && isVisible() && loaded[other];
+      m.delivered_at = now;
+      if(reading) m.read_at = now;
+      sb.from('messages').update(reading ? {delivered_at: now, read_at: now} : {delivered_at: now})
+        .eq('id', m.id).then(function(){});
+    }
+    pushMessage(m);
+    if(activeId === other && loaded[other]) renderMessages();
+    renderList();
+  }
+
+  function onUpdate(m){
+    var other = m.sender_id === me.id ? m.receiver_id : m.sender_id;
+    var a = msgs[other]; if(!a) return;
+    a.forEach(function(x){
+      if(x.id === m.id){ x.delivered_at = m.delivered_at; x.read_at = m.read_at; }
+    });
+    if(activeId === other) renderMessages();
+    renderList();
+  }
+
+  function subscribe(){
+    msgChannel = sb.channel('nimbus-msgs-' + me.id)
+      .on('postgres_changes', {event: 'INSERT', schema: 'public', table: 'messages', filter: 'receiver_id=eq.' + me.id},
+        function(p){ onIncoming(p.new); })
+      .on('postgres_changes', {event: 'INSERT', schema: 'public', table: 'messages', filter: 'sender_id=eq.' + me.id},
+        function(p){ onIncoming(p.new); })
+      .on('postgres_changes', {event: 'UPDATE', schema: 'public', table: 'messages', filter: 'sender_id=eq.' + me.id},
+        function(p){ onUpdate(p.new); })
+      .subscribe();
+  }
+
+  var sending = false;
+  async function insertMessage(extra, to){
+    var r = await sb.from('messages')
+      .insert(Object.assign({sender_id: me.id, receiver_id: to, body: '', kind: 'text'}, extra))
+      .select().single();
+    if(r.error){ toast('Pesan gagal terkirim: ' + r.error.message); return null; }
+    pushMessage(r.data);
+    if(activeId === to) renderMessages();
+    renderList();
+    return r.data;
+  }
+
+  async function sendMessage(){
+    var input = $('input');
+    var body = input.value.trim();
+    if(!body || !activeId || sending) return;
+    sending = true;
+    var m = await insertMessage({body: body, kind: 'text'}, activeId);
+    sending = false;
+    if(m){ input.value = ''; input.style.height = 'auto'; input.focus(); }
+  }
+  $('composer').addEventListener('submit', function(e){ e.preventDefault(); sendMessage(); });
+  $('input').addEventListener('keydown', function(e){
+    if(e.key === 'Enter' && !e.shiftKey && !e.isComposing){ e.preventDefault(); sendMessage(); }
+  });
+  $('input').addEventListener('input', function(){
+    this.style.height = 'auto';
+    this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+  });
+
+  /* ---------- modal ---------- */
+  var pendingImg = null;
+  function openModal(id){ closeModals(); $(id).classList.remove('hidden'); }
+  function closeModals(){
+    [].forEach.call(document.querySelectorAll('.modal-back'), function(m){ m.classList.add('hidden'); });
+    if(pendingImg){ URL.revokeObjectURL(pendingImg.url); pendingImg = null; }
+  }
+  [].forEach.call(document.querySelectorAll('.modal-back'), function(m){
+    m.addEventListener('click', function(e){ if(e.target === m) closeModals(); });
+  });
+  [].forEach.call(document.querySelectorAll('[data-close]'), function(b){ b.addEventListener('click', closeModals); });
+  document.addEventListener('keydown', function(e){ if(e.key === 'Escape') closeModals(); });
+  function openLightbox(url){ $('lbImg').src = url; openModal('lb'); }
+
+  /* ---------- kirim foto ---------- */
+  $('btnImg').addEventListener('click', function(){ if(!activeId) return; $('fileImg').value = ''; $('fileImg').click(); });
+  $('fileImg').addEventListener('change', async function(){
+    var f = this.files[0]; if(!f || !activeId) return;
+    try{
+      var bmp = await loadBitmap(f);
+      var out = await fitJpeg(bmp, 1280);
+      out.url = URL.createObjectURL(out.blob);
+      openModal('mImage');   // openModal mereset pendingImg, jadi isi setelahnya
+      pendingImg = out;
+      $('imgPrev').src = out.url; $('imgCap').value = '';
+    }catch(e){ toast(e.message || 'Gagal membaca gambar'); }
+  });
+  $('btnImgSend').addEventListener('click', async function(){
+    if(!pendingImg || !activeId) return;
+    var img = pendingImg, to = activeId, btn = this;
+    btn.disabled = true;
+    var path = me.id + '/' + uuid() + '.jpg';
+    var up = await sb.storage.from('chat-media').upload(path, img.blob, {contentType: 'image/jpeg'});
+    if(up.error){ toast('Gagal mengunggah: ' + up.error.message); btn.disabled = false; return; }
+    urlCache[path] = {url: img.url, t: Date.now()};
+    var caption = $('imgCap').value.trim().slice(0, 500);
+    pendingImg = null;
+    closeModals();
+    btn.disabled = false;
+    await insertMessage({kind: 'image', media_path: path, media_w: img.w, media_h: img.h, body: caption}, to);
+  });
+
+  /* ---------- tray stiker ---------- */
+  async function loadStickers(){
+    var r = await sb.from('stickers').select('id,path').order('created_at', {ascending: false});
+    stickers = r.data || [];
+  }
+  function closeTray(){ $('tray').classList.add('hidden'); $('btnStk').classList.remove('on'); trayEdit = false; }
+  function renderTray(){
+    var g = $('trayGrid'); g.textContent = '';
+    $('btnTrayEdit').textContent = trayEdit ? 'Selesai' : 'Hapus';
+    var add = h('button', 'tile add'); add.type = 'button';
+    add.appendChild(h('span', '', '+'));
+    add.appendChild(h('span', '', 'Buat'));
+    add.addEventListener('click', openStickerMaker);
+    g.appendChild(add);
+    stickers.forEach(function(s){
+      var t = h('button', 'tile'); t.type = 'button';
+      t.dataset.path = s.path;
+      t.setAttribute('aria-label', trayEdit ? 'Hapus stiker' : 'Kirim stiker');
+      var c = urlCache[s.path]; if(fresh(c)) attachImg(t, c.url);
+      if(trayEdit) t.appendChild(h('span', 'del', '×'));
+      t.addEventListener('click', function(){ trayEdit ? deleteSticker(s) : sendSticker(s.path); });
+      g.appendChild(t);
+    });
+    hydrate(g);
+  }
+  $('btnStk').addEventListener('click', function(){
+    if(!activeId) return;
+    var open = $('tray').classList.contains('hidden');
+    if(open){ $('tray').classList.remove('hidden'); this.classList.add('on'); renderTray(); }
+    else closeTray();
+  });
+  $('btnTrayEdit').addEventListener('click', function(){ trayEdit = !trayEdit; renderTray(); });
+
+  async function deleteSticker(s){
+    var r = await sb.from('stickers').delete().eq('id', s.id);
+    if(r.error){ toast('Gagal menghapus: ' + r.error.message); return; }
+    stickers = stickers.filter(function(x){ return x.id !== s.id; });
+    renderTray();
+  }
+  async function sendSticker(path){
+    if(!activeId) return;
+    closeTray();
+    await insertMessage({kind: 'sticker', media_path: path, media_w: 512, media_h: 512}, activeId);
+  }
+
+  /* ---------- pembuat stiker ---------- */
+  var stk = {bmp: null, w: 0, h: 0, zoom: 1, ox: 0, oy: 0, shape: 'circle', outline: true, text: ''};
+  function openStickerMaker(){
+    stk = {bmp: null, w: 0, h: 0, zoom: 1, ox: 0, oy: 0, shape: 'circle', outline: true, text: ''};
+    $('stkZoom').value = 1; $('stkOutline').checked = true; $('stkText').value = '';
+    [].forEach.call($('stkShapes').children, function(c){ c.classList.toggle('on', c.dataset.shape === 'circle'); });
+    $('stkPick').classList.remove('hidden');
+    $('stkEdit').classList.add('hidden');
+    $('stkCancel').classList.remove('hidden');
+    openModal('mSticker');
+    if(document.fonts && document.fonts.load) document.fonts.load('800 46px Nunito').catch(function(){});
+  }
+  $('btnPickSticker').addEventListener('click', function(){ $('fileSticker').value = ''; $('fileSticker').click(); });
+  $('fileSticker').addEventListener('change', async function(){
+    var f = this.files[0]; if(!f) return;
+    try{
+      var bmp = await loadBitmap(f);
+      stk.bmp = bmp.src; stk.w = bmp.w; stk.h = bmp.h; stk.ox = 0; stk.oy = 0; stk.zoom = 1;
+      $('stkZoom').value = 1;
+      $('stkPick').classList.add('hidden');
+      $('stkEdit').classList.remove('hidden');
+      $('stkCancel').classList.add('hidden');
+      drawSticker();
+    }catch(e){ toast(e.message || 'Gagal membaca gambar'); }
+  });
+
+  function shapePath(ctx, shape, e){
+    ctx.beginPath();
+    if(shape === 'circle'){ ctx.arc(256, 256, 226 + e, 0, Math.PI * 2); return; }
+    var x = 30 - e, y = 30 - e, w = 452 + 2 * e, r = 84 + e;
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + w, r);
+    ctx.arcTo(x + w, y + w, x, y + w, r);
+    ctx.arcTo(x, y + w, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  }
+
+  function drawSticker(){
+    var c = $('stkCanvas'), ctx = c.getContext('2d');
+    ctx.clearRect(0, 0, 512, 512);
+    if(!stk.bmp) return;
+    var iw = stk.w, ih = stk.h, s, dw, dh;
+    if(stk.shape === 'free'){
+      s = Math.min(452 / iw, 452 / ih) * stk.zoom; dw = iw * s; dh = ih * s;
+      stk.ox = Math.max(-256, Math.min(256, stk.ox)); stk.oy = Math.max(-256, Math.min(256, stk.oy));
+      ctx.save();
+      ctx.shadowColor = 'rgba(0,0,0,.28)'; ctx.shadowBlur = 12; ctx.shadowOffsetY = 4;
+      ctx.drawImage(stk.bmp, 256 - dw / 2 + stk.ox, 256 - dh / 2 + stk.oy, dw, dh);
+      ctx.restore();
+    } else {
+      s = Math.max(452 / iw, 452 / ih) * Math.max(1, stk.zoom); dw = iw * s; dh = ih * s;
+      var mx = Math.max(0, (dw - 452) / 2), my = Math.max(0, (dh - 452) / 2);
+      stk.ox = Math.max(-mx, Math.min(mx, stk.ox)); stk.oy = Math.max(-my, Math.min(my, stk.oy));
+      ctx.save();
+      shapePath(ctx, stk.shape, stk.outline ? 10 : 0);
+      ctx.fillStyle = stk.outline ? '#fff' : '#000';
+      ctx.shadowColor = 'rgba(0,0,0,.28)'; ctx.shadowBlur = 12; ctx.shadowOffsetY = 4;
+      ctx.fill();
+      ctx.restore();
+      ctx.save();
+      shapePath(ctx, stk.shape, 0); ctx.clip();
+      ctx.clearRect(0, 0, 512, 512);
+      ctx.drawImage(stk.bmp, 256 - dw / 2 + stk.ox, 256 - dh / 2 + stk.oy, dw, dh);
+      ctx.restore();
+    }
+    if(stk.text){
+      ctx.save();
+      ctx.font = '800 46px Nunito, system-ui, sans-serif';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.lineJoin = 'round'; ctx.lineWidth = 10; ctx.strokeStyle = '#3b3350';
+      ctx.strokeText(stk.text, 256, 436, 440);
+      ctx.fillStyle = '#fff';
+      ctx.fillText(stk.text, 256, 436, 440);
+      ctx.restore();
+    }
+  }
+
+  (function(){
+    var c = $('stkCanvas'), drag = null;
+    c.addEventListener('pointerdown', function(e){
+      drag = {x: e.clientX, y: e.clientY, ox: stk.ox, oy: stk.oy};
+      c.setPointerCapture(e.pointerId);
+    });
+    c.addEventListener('pointermove', function(e){
+      if(!drag) return;
+      var k = 512 / c.clientWidth;
+      stk.ox = drag.ox + (e.clientX - drag.x) * k;
+      stk.oy = drag.oy + (e.clientY - drag.y) * k;
+      drawSticker();
+    });
+    function end(){ drag = null; }
+    c.addEventListener('pointerup', end);
+    c.addEventListener('pointercancel', end);
+  })();
+
+  $('stkShapes').addEventListener('click', function(e){
+    var b = e.target.closest('[data-shape]'); if(!b) return;
+    stk.shape = b.dataset.shape;
+    [].forEach.call(this.children, function(c){ c.classList.toggle('on', c === b); });
+    $('stkOutline').disabled = stk.shape === 'free';
+    drawSticker();
+  });
+  $('stkZoom').addEventListener('input', function(){ stk.zoom = parseFloat(this.value); drawSticker(); });
+  $('stkOutline').addEventListener('change', function(){ stk.outline = this.checked; drawSticker(); });
+  $('stkText').addEventListener('input', function(){ stk.text = this.value.trim(); drawSticker(); });
+
+  async function saveSticker(andSend){
+    if(!stk.bmp) return;
+    var to = activeId;
+    $('btnStkSave').disabled = $('btnStkSend').disabled = true;
+    var blob = await toBlob($('stkCanvas'), 'image/webp', 0.92);
+    if(!blob){ toast('Gagal membuat stiker'); $('btnStkSave').disabled = $('btnStkSend').disabled = false; return; }
+    var ext = blob.type === 'image/png' ? 'png' : 'webp';
+    var path = me.id + '/stickers/' + uuid() + '.' + ext;
+    var up = await sb.storage.from('chat-media').upload(path, blob, {contentType: blob.type});
+    if(up.error){ toast('Gagal mengunggah: ' + up.error.message); $('btnStkSave').disabled = $('btnStkSend').disabled = false; return; }
+    var r = await sb.from('stickers').insert({owner_id: me.id, path: path}).select('id,path').single();
+    $('btnStkSave').disabled = $('btnStkSend').disabled = false;
+    if(r.error){ toast('Gagal menyimpan stiker: ' + r.error.message); return; }
+    urlCache[path] = {url: URL.createObjectURL(blob), t: Date.now()};
+    stickers.unshift(r.data);
+    closeModals();
+    toast('Stiker disimpan');
+    if(!$('tray').classList.contains('hidden')) renderTray();
+    if(andSend && to){ activeId = to; await insertMessage({kind: 'sticker', media_path: path, media_w: 512, media_h: 512}, to); closeTray(); }
+  }
+  $('btnStkSave').addEventListener('click', function(){ saveSticker(false); });
+  $('btnStkSend').addEventListener('click', function(){ saveSticker(true); });
+
+  /* ---------- foto profil ---------- */
+  function renderProfileModal(){
+    $('pfAvatar').textContent = '';
+    $('pfAvatar').appendChild(avatar(myProfile, 96, false));
+    $('pfNick').textContent = '@' + myProfile.nick;
+    $('btnDelAvatar').disabled = !myProfile.avatar_url;
+    setMsg('pfErr', '');
+  }
+  $('btnProfile').addEventListener('click', function(){ renderProfileModal(); openModal('mProfile'); });
+  $('btnPickAvatar').addEventListener('click', function(){ $('fileAvatar').value = ''; $('fileAvatar').click(); });
+  $('fileAvatar').addEventListener('change', async function(){
+    var f = this.files[0]; if(!f) return;
+    $('btnPickAvatar').disabled = true; setMsg('pfErr', '');
+    try{
+      var bmp = await loadBitmap(f);
+      var side = Math.min(bmp.w, bmp.h);
+      var c = document.createElement('canvas'); c.width = c.height = 256;
+      c.getContext('2d').drawImage(bmp.src, (bmp.w - side) / 2, (bmp.h - side) / 2, side, side, 0, 0, 256, 256);
+      var blob = await toBlob(c, 'image/jpeg', 0.88);
+      var path = me.id + '/avatar.jpg';
+      var up = await sb.storage.from('avatars').upload(path, blob, {contentType: 'image/jpeg', upsert: true});
+      if(up.error) throw new Error(up.error.message);
+      var url = sb.storage.from('avatars').getPublicUrl(path).data.publicUrl + '?v=' + Date.now();
+      var r = await sb.from('profiles').update({avatar_url: url}).eq('id', me.id);
+      if(r.error) throw new Error(r.error.message);
+      myProfile.avatar_url = url;
+      renderMe(); renderProfileModal(); renderList(); updateHeader();
+    }catch(e){ setMsg('pfErr', 'Gagal mengganti foto: ' + (e.message || e)); }
+    $('btnPickAvatar').disabled = false;
+  });
+  $('btnDelAvatar').addEventListener('click', async function(){
+    var r = await sb.from('profiles').update({avatar_url: null}).eq('id', me.id);
+    if(r.error){ setMsg('pfErr', 'Gagal menghapus foto: ' + r.error.message); return; }
+    sb.storage.from('avatars').remove([me.id + '/avatar.jpg']).then(function(){});
+    myProfile.avatar_url = null;
+    renderMe(); renderProfileModal(); renderList();
+  });
+
+  /* ---------- online / offline ---------- */
+  function syncOnline(){
+    var st = presenceCh.presenceState();
+    online = {};
+    Object.keys(st).forEach(function(k){ online[k] = true; });
+    renderList(); updateHeader();
+  }
+  function startPresence(){
+    presenceCh = sb.channel('nimbus-presence', {config: {presence: {key: me.id}}});
+    presenceCh
+      .on('presence', {event: 'sync'}, syncOnline)
+      .on('presence', {event: 'leave'}, function(p){
+        if(profiles[p.key]) profiles[p.key].last_seen = new Date().toISOString();
+      })
+      .subscribe(function(status){
+        if(status === 'SUBSCRIBED') presenceCh.track({online_at: new Date().toISOString()});
+      });
+    touchSeen();
+    beatTimer = setInterval(function(){ if(isVisible()) touchSeen(); }, 60000);
+  }
+  function touchSeen(){
+    if(!me) return;
+    sb.from('profiles').update({last_seen: new Date().toISOString()}).eq('id', me.id).then(function(){});
+  }
+  document.addEventListener('visibilitychange', function(){
+    if(!me || !started) return;
+    touchSeen();
+    if(isVisible() && activeId){ markReadRemote(activeId); renderList(); }
+  });
+  window.addEventListener('pagehide', function(){ touchSeen(); });
+
+  /* ---------- keluar & mulai ---------- */
+  $('btnLogout').addEventListener('click', async function(){
+    clearInterval(beatTimer);
+    if(msgChannel) await sb.removeChannel(msgChannel);
+    if(presenceCh){ await presenceCh.untrack(); await sb.removeChannel(presenceCh); }
+    touchSeen();
+    await sb.auth.signOut();
+    location.reload();
+  });
+
+  sb.auth.getSession().then(function(r){
+    if(r.data && r.data.session) afterLogin(r.data.session.user);
+    else showScreen('auth');
+  });
+})();
+</script>
+</body>
+</html>
