@@ -177,10 +177,13 @@ const preview=m=>!m?'Belum ada pesan':m.kind==='image'?'Foto':m.body;
 const av=p=>`<div class="av">${p?.avatar_path?`<img src="${sb.storage.from('avatars').getPublicUrl(p.avatar_path).data.publicUrl}" alt="">`:esc((p?.nickname||'?').charAt(0).toUpperCase())}</div>`;
 
 function humanErr(e){
- const m=(e?.message||'').toLowerCase();
- if(m.includes('invalid login'))return 'ID/email atau password salah.';
- if(m.includes('already registered'))return 'ID ini sudah terdaftar. Silakan masuk.';
- if(m.includes('rate limit')||m.includes('too many'))return 'Terlalu sering mencoba. Tunggu beberapa menit.';
+ const c=e?.code||'',m=(e?.message||'').toLowerCase();
+ if(c==='invalid_credentials'||m.includes('invalid login'))return 'ID/email atau password salah.';
+ if(c==='email_not_confirmed'||m.includes('not confirmed'))return 'Akun ini belum dikonfirmasi. Jalankan SQL konfirmasi di Supabase (langkah 2), lalu coba lagi.';
+ if(c==='over_email_send_rate_limit'||m.includes('email rate limit'))return 'Batas kirim email Supabase tercapai. Pastikan Confirm email sudah mati (langkah 1).';
+ if(m.includes('request this after'))return 'Tunggu sekitar 1 menit, lalu coba lagi.';
+ if(c==='over_request_rate_limit'||m.includes('rate limit')||m.includes('too many'))return 'Terlalu banyak percobaan dari jaringan ini. Tunggu 5–10 menit lalu coba lagi.';
+ if(m.includes('already registered')||m.includes('already been registered'))return 'ID ini sudah terdaftar. Silakan masuk.';
  return e?.message||'Terjadi kesalahan. Coba lagi.';
 }
 function uidErr(e){
@@ -204,7 +207,6 @@ function setMode(m){
  mode=m;
  document.querySelectorAll('[data-m]').forEach(e=>e.classList.toggle('hide',!e.dataset.m.split(' ').includes(m)));
  const [t,s,b]=T[m];
- $('#at')?.remove();
  document.querySelector('#af h1').textContent=t;$('#as').textContent=s;$('#ab').textContent=b;
  $('#uid').placeholder=m==='login'?'ID atau email':'ID unik (a–z, 0–9, _)';
  $('#pass').autocomplete=m==='login'?'current-password':'new-password';
@@ -230,7 +232,7 @@ $('#af').onsubmit=async e=>{
    if(!free)throw new Error('ID sudah dipakai. Pilih ID lain.');
    const {data,error}=await sb.auth.signUp({email:loginEmail(idIn),password:pass,options:{data:{nickname:nick,uid_code:idIn}}});
    if(error)throw error;
-   if(!data.session)throw new Error('Akun dibuat, tapi masih menunggu verifikasi. Matikan Confirm email di Supabase.');
+   if(!data.session)throw new Error('Akun dibuat, tapi masih menunggu verifikasi. Matikan Confirm email di Supabase (langkah 1).');
   }
  }catch(err){$('#ae').textContent=humanErr(err);}
  finally{btn.disabled=false;}
