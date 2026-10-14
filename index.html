@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Nimbus Chat</title>
+<title>Cimel Chats</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -145,6 +145,17 @@
   .ctl input[type=range]{flex:1;accent-color:var(--brand)}
   .ctl input[type=checkbox]{width:18px;height:18px;accent-color:var(--brand)}
   .small-hint{font-size:12px;color:var(--muted);text-align:center;margin:8px 0 0}
+  .head-btn{display:flex;align-items:center;gap:12px;background:none;border:0;padding:0;text-align:left;cursor:pointer;min-width:0;flex:1}
+  .me span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .count{font-size:12px;color:var(--muted);text-align:right;margin-top:4px}
+  textarea.cap-in{resize:none;font-family:inherit;line-height:1.4;margin-top:0;display:block}
+  .pf-links{display:flex;gap:18px;justify-content:center}
+  .view-name{font-size:20px;font-weight:800;margin-top:10px}
+  .view-nick{color:var(--muted);font-size:14px}
+  .bio-box{margin-top:14px;padding:14px 16px;border-radius:16px;background:var(--bg);white-space:pre-wrap;word-break:break-word;font-size:15px}
+  .bio-box.empty-bio{color:var(--muted)}
+  .mimg.fail,.stk.fail{display:flex;align-items:center;justify-content:center;text-align:center;padding:8px;font-size:12px;color:var(--muted);cursor:default}
+  .stk.fail{background:var(--bg);border-radius:16px}
   .lb{background:rgba(30,24,45,.92);cursor:zoom-out}
   .lb img{max-width:96vw;max-height:92dvh;border-radius:12px;display:block}
   .toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);background:var(--text);color:#fff;padding:10px 18px;border-radius:14px;font-size:14px;opacity:0;pointer-events:none;transition:.25s;z-index:30;max-width:90vw}
@@ -170,7 +181,7 @@
     <div class="logo">
       <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#7c5cc4" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 18a4 4 0 0 1-.6-7.96A6 6 0 0 1 18 9.5a4.25 4.25 0 0 1-.5 8.5H7z"/></svg>
     </div>
-    <h1>Nimbus</h1>
+    <h1>Cimel Chats</h1>
     <p class="lead">Ngobrol santai sama teman. Masuk pakai email, kode dikirim ke Gmail kamu.</p>
 
     <div id="stepEmail">
@@ -217,7 +228,10 @@
   <aside class="sidebar">
     <div class="side-head">
       <button class="avbtn" id="btnProfile" aria-label="Profil saya"></button>
-      <div class="me"><b id="meNick"></b><span>Ketuk foto untuk mengganti</span></div>
+      <div class="me"><b id="meNick"></b><span id="meSub"></span></div>
+      <button class="icon" id="btnSettings" aria-label="Pengaturan profil">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6f6788" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h8M18 6h2M4 12h2M12 12h8M4 18h10M20 18h0"/><circle cx="15" cy="6" r="2.4"/><circle cx="9" cy="12" r="2.4"/><circle cx="17" cy="18" r="2.4"/></svg>
+      </button>
       <button class="icon" id="btnLogout" aria-label="Keluar">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6f6788" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
       </button>
@@ -243,8 +257,10 @@
         <button class="icon back" id="btnBack" aria-label="Kembali">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3b3350" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
         </button>
-        <div id="cAvatar"></div>
-        <div class="who"><b id="cNick"></b><span id="cStatus" class="status"></span></div>
+        <button type="button" class="head-btn" id="btnViewProfile" aria-label="Lihat profil">
+          <div id="cAvatar"></div>
+          <div class="who"><b id="cNick"></b><span id="cStatus" class="status"></span></div>
+        </button>
       </header>
       <div id="msgs" class="msgs"></div>
 
@@ -276,21 +292,49 @@
 <input id="fileAvatar" type="file" accept="image/*" class="hidden">
 <input id="fileSticker" type="file" accept="image/*" class="hidden">
 
-<!-- Modal: profil -->
+<!-- Modal: pengaturan profil -->
 <div id="mProfile" class="modal-back hidden">
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="pfTitle">
-    <h2 id="pfTitle">Profil saya</h2>
+    <h2 id="pfTitle">Pengaturan profil</h2>
     <div class="pf-center">
       <div id="pfAvatar"></div>
-      <b id="pfNick"></b>
-      <span>Foto diambil dari galeri, dipotong jadi persegi.</span>
+      <div class="pf-links">
+        <button type="button" class="link" id="btnPickAvatar">Ganti foto</button>
+        <button type="button" class="link" id="btnDelAvatar">Hapus foto</button>
+      </div>
     </div>
-    <button class="btn" id="btnPickAvatar">Pilih foto dari galeri</button>
+    <div class="field">
+      <label for="pfName">Nama tampilan</label>
+      <input id="pfName" maxlength="30" autocomplete="off" placeholder="Nama yang dilihat teman">
+    </div>
+    <div class="field">
+      <label for="pfNick">Nick (ID)</label>
+      <input id="pfNick" maxlength="20" autocomplete="off" autocapitalize="none">
+    </div>
+    <div class="field">
+      <label for="pfBio">Bio</label>
+      <textarea id="pfBio" class="cap-in" rows="3" maxlength="150" placeholder="Ceritakan sedikit tentang kamu"></textarea>
+      <div class="count" id="pfCount"></div>
+    </div>
     <div class="btns">
-      <button class="btn soft" id="btnDelAvatar">Hapus foto</button>
-      <button class="btn soft" data-close>Tutup</button>
+      <button class="btn soft" data-close>Batal</button>
+      <button class="btn" id="btnPfSave">Simpan</button>
     </div>
     <p class="err" id="pfErr" role="alert"></p>
+  </div>
+</div>
+
+<!-- Modal: lihat profil teman -->
+<div id="mView" class="modal-back hidden">
+  <div class="modal" role="dialog" aria-modal="true" aria-label="Profil teman">
+    <div class="pf-center">
+      <div id="vAvatar"></div>
+      <div class="view-name" id="vName"></div>
+      <div class="view-nick" id="vNick"></div>
+      <span class="status" id="vStatus"></span>
+    </div>
+    <div class="bio-box" id="vBio"></div>
+    <div class="btns"><button class="btn soft" data-close>Tutup</button></div>
   </div>
 </div>
 
@@ -364,7 +408,7 @@
   }
 
   var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  var PCOLS = 'id,nick,avatar_url,last_seen';
+  var PCOLS = 'id,nick,display_name,bio,avatar_url,last_seen';
 
   var me = null, myProfile = null, activeId = null;
   var profiles = {};     // id -> profil
@@ -393,6 +437,7 @@
       : Date.now().toString(36) + Math.random().toString(36).slice(2);
   }
   function isVisible(){ return document.visibilityState === 'visible'; }
+  function dname(p){ return p && p.display_name ? p.display_name : '@' + (p ? p.nick : '...'); }
 
   var PALETTE = ['#ffd9e6','#d8f3e6','#dfe7ff','#fff0c9','#e4d8fa','#ffe0d1'];
   function avatar(p, size, dot){
@@ -403,7 +448,7 @@
       var im = h('img', 'avimg'); im.alt = ''; im.src = p.avatar_url;
       w.appendChild(im);
     } else {
-      var n = p.nick || '?', sum = 0;
+      var n = p.display_name || p.nick || '?', sum = 0;
       for(var i = 0; i < n.length; i++) sum += n.charCodeAt(i);
       var a = h('div', 'av', n.charAt(0));
       a.style.fontSize = Math.round(size * 0.42) + 'px';
@@ -444,21 +489,28 @@
   }
 
   /* ---------- gambar: baca, ubah ukuran ---------- */
+  function decodeImage(file){
+    return new Promise(function(res, rej){
+      var u = URL.createObjectURL(file), im = new Image();
+      im.onload = function(){ res({src: im, w: im.naturalWidth, h: im.naturalHeight}); };
+      im.onerror = function(){ URL.revokeObjectURL(u); rej(new Error('decode')); };
+      im.src = u;
+    });
+  }
   async function loadBitmap(file){
     if(!/^image\//.test(file.type)) throw new Error('File harus berupa gambar');
     if(file.size > 20 * 1024 * 1024) throw new Error('Ukuran gambar maksimal 20 MB');
+    try{
+      var r = await decodeImage(file);
+      if(r.w && r.h) return r;
+    }catch(e){}
     if(window.createImageBitmap){
       try{
-        var b = await createImageBitmap(file, {imageOrientation: 'from-image'});
+        var b = await createImageBitmap(file);
         return {src: b, w: b.width, h: b.height};
       }catch(e){}
     }
-    return new Promise(function(res, rej){
-      var u = URL.createObjectURL(file), im = new Image();
-      im.onload = function(){ res({src: im, w: im.naturalWidth, h: im.naturalHeight}); URL.revokeObjectURL(u); };
-      im.onerror = function(){ rej(new Error('Gagal membaca gambar')); };
-      im.src = u;
-    });
+    throw new Error('Gagal membaca gambar. Coba foto lain (JPG atau PNG).');
   }
   function toBlob(c, type, q){ return new Promise(function(r){ c.toBlob(r, type, q); }); }
   async function fitJpeg(bmp, max){
@@ -473,19 +525,30 @@
 
   /* ---------- URL media (bucket privat) ---------- */
   function fresh(c){ return c && Date.now() - c.t < 50 * 60 * 1000; }
+  var lastSignErr = '';
   async function ensureUrls(paths){
     var need = [];
     paths.forEach(function(p){ if(!fresh(urlCache[p]) && need.indexOf(p) < 0) need.push(p); });
     if(!need.length) return;
-    var r = await sb.storage.from('chat-media').createSignedUrls(need, 3600);
-    if(r.data) r.data.forEach(function(x){
-      if(x.signedUrl) urlCache[x.path] = {url: x.signedUrl, t: Date.now()};
-    });
+    lastSignErr = '';
+    try{
+      var r = await sb.storage.from('chat-media').createSignedUrls(need, 3600);
+      if(r.error) lastSignErr = r.error.message;
+      if(r.data) r.data.forEach(function(x){
+        if(x.signedUrl) urlCache[x.path] = {url: x.signedUrl, t: Date.now()};
+        else if(x.error) lastSignErr = String(x.error);
+      });
+    }catch(e){ lastSignErr = e.message || 'jaringan bermasalah'; }
   }
   function attachImg(box, url){
     if(box.querySelector('img')) return;
     var im = h('img');
     im.alt = box.classList.contains('mimg') ? 'Foto' : 'Stiker';
+    im.onerror = function(){
+      delete urlCache[box.dataset.path];
+      box.textContent = 'Gagal memuat';
+      box.classList.add('fail');
+    };
     im.src = url;
     box.appendChild(im);
   }
@@ -493,10 +556,14 @@
     var els = [].slice.call(root.querySelectorAll('[data-path]'));
     if(!els.length) return;
     ensureUrls(els.map(function(e){ return e.dataset.path; })).then(function(){
+      var failed = false;
       els.forEach(function(e){
         var c = urlCache[e.dataset.path];
-        if(e.isConnected && c) attachImg(e, c.url);
+        if(!e.isConnected) return;
+        if(c) attachImg(e, c.url);
+        else if(!e.querySelector('img')){ failed = true; e.textContent = 'Gagal memuat'; e.classList.add('fail'); }
       });
+      if(failed && lastSignErr) toast('Gagal memuat foto: ' + lastSignErr);
     });
   }
 
@@ -585,7 +652,8 @@
   /* ---------- aplikasi ---------- */
   function renderMe(){
     profiles[me.id] = myProfile;
-    $('meNick').textContent = '@' + myProfile.nick;
+    $('meNick').textContent = dname(myProfile);
+    $('meSub').textContent = myProfile.bio || (myProfile.display_name ? '@' + myProfile.nick : 'Atur nama dan bio di pengaturan');
     $('btnProfile').textContent = '';
     $('btnProfile').appendChild(avatar(myProfile, 44, false));
   }
@@ -658,7 +726,7 @@
     b.type = 'button';
     b.appendChild(avatar(p, 48, true));
     var mid = h('div', 'mid');
-    mid.appendChild(h('b', '', '@' + p.nick));
+    mid.appendChild(h('b', '', dname(p)));
     var prev = h('span', 'prev');
     if(last){
       if(last.sender_id === me.id) prev.appendChild(tickEl(msgState(last), true));
@@ -702,8 +770,9 @@
       profiles[p.id] = p;
       var b = h('button', 'item'); b.type = 'button';
       b.appendChild(avatar(p, 48, true));
-      var mid = h('div', 'mid'); mid.appendChild(h('b', '', '@' + p.nick));
-      var pv = h('span', 'prev'); pv.appendChild(h('span', 'ptx', online[p.id] ? 'Online' : 'Ketuk untuk mulai chat'));
+      var mid = h('div', 'mid'); mid.appendChild(h('b', '', dname(p)));
+      var sub = p.display_name ? '@' + p.nick + (online[p.id] ? ' · Online' : '') : (online[p.id] ? 'Online' : 'Ketuk untuk mulai chat');
+      var pv = h('span', 'prev'); pv.appendChild(h('span', 'ptx', sub));
       mid.appendChild(pv);
       b.appendChild(mid);
       b.addEventListener('click', function(){
@@ -734,7 +803,7 @@
     if(!activeId) return;
     var p = profiles[activeId] || {nick: '...'};
     var on = !!online[activeId];
-    $('cNick').textContent = '@' + p.nick;
+    $('cNick').textContent = dname(p);
     $('cAvatar').textContent = '';
     $('cAvatar').appendChild(avatar(p, 42, true));
     var st = $('cStatus');
@@ -1117,11 +1186,62 @@
   function renderProfileModal(){
     $('pfAvatar').textContent = '';
     $('pfAvatar').appendChild(avatar(myProfile, 96, false));
-    $('pfNick').textContent = '@' + myProfile.nick;
     $('btnDelAvatar').disabled = !myProfile.avatar_url;
-    setMsg('pfErr', '');
   }
-  $('btnProfile').addEventListener('click', function(){ renderProfileModal(); openModal('mProfile'); });
+  function updateBioCount(){ $('pfCount').textContent = $('pfBio').value.length + '/150'; }
+  function openProfileEditor(){
+    $('pfName').value = myProfile.display_name || '';
+    $('pfNick').value = myProfile.nick;
+    $('pfBio').value = myProfile.bio || '';
+    updateBioCount(); setMsg('pfErr', '');
+    renderProfileModal();
+    openModal('mProfile');
+  }
+  $('btnProfile').addEventListener('click', openProfileEditor);
+  $('btnSettings').addEventListener('click', openProfileEditor);
+  $('pfBio').addEventListener('input', updateBioCount);
+
+  $('btnPfSave').addEventListener('click', async function(){
+    var name = $('pfName').value.trim().slice(0, 30);
+    var nick = $('pfNick').value.trim().toLowerCase().replace(/^@/, '');
+    var bio = $('pfBio').value.trim().slice(0, 150);
+    var btn = this;
+    setMsg('pfErr', '');
+    if(!/^[a-z0-9_.]{3,20}$/.test(nick)){
+      setMsg('pfErr', 'Nick 3-20 karakter: huruf kecil, angka, titik, atau garis bawah.');
+      return;
+    }
+    btn.disabled = true;
+    var r = await sb.from('profiles')
+      .update({display_name: name || null, nick: nick, bio: bio || null})
+      .eq('id', me.id).select(PCOLS).single();
+    btn.disabled = false;
+    if(r.error){
+      setMsg('pfErr', r.error.code === '23505' ? 'Nick sudah dipakai, coba yang lain.' : 'Gagal menyimpan: ' + r.error.message);
+      return;
+    }
+    myProfile = r.data;
+    renderMe(); renderList(); closeModals();
+    toast('Profil diperbarui');
+  });
+
+  /* ---------- lihat profil teman ---------- */
+  $('btnViewProfile').addEventListener('click', function(){
+    var p = profiles[activeId]; if(!p) return;
+    var on = !!online[p.id];
+    $('vAvatar').textContent = '';
+    $('vAvatar').appendChild(avatar(p, 120, true));
+    $('vName').textContent = dname(p);
+    $('vNick').textContent = '@' + p.nick;
+    var st = $('vStatus');
+    st.className = 'status' + (on ? ' on' : '');
+    st.textContent = on ? 'Online'
+      : (p.last_seen ? 'Terakhir dilihat ' + dayLabel(p.last_seen).toLowerCase() + ' ' + fmtTime(p.last_seen) : 'Offline');
+    var bio = $('vBio');
+    bio.textContent = p.bio || 'Belum ada bio.';
+    bio.classList.toggle('empty-bio', !p.bio);
+    openModal('mView');
+  });
   $('btnPickAvatar').addEventListener('click', function(){ $('fileAvatar').value = ''; $('fileAvatar').click(); });
   $('fileAvatar').addEventListener('change', async function(){
     var f = this.files[0]; if(!f) return;
