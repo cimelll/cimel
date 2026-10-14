@@ -4,60 +4,99 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Cimel Chats</title>
+<script>
+  try{ var t = localStorage.getItem('cimel_theme'); if(t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t); }catch(e){}
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#f6f1fb; --panel:#fffdfb; --line:#efe7fa;
+    color-scheme:light;
+    --bg:#f6f1fb; --panel:#fffdfb; --line:#efe7fa; --field:#fcfaff;
     --text:#3b3350; --muted:#6f6788;
-    --brand:#7c5cc4; --brand-soft:#e4d8fa; --pink:#ffd9e6; --mint:#d8f3e6;
-    --online:#4cd18a; --online-text:#1f8a5b; --read:#2f9be8;
+    --brand:#7c5cc4; --brand-ink:#7c5cc4; --brand-soft:#e4d8fa;
+    --bubble-in:#ffffff; --bubble-out:#e4d8fa;
+    --wall:#f8f3fd; --wall-dot:#eadff7;
+    --online:#4cd18a; --online-text:#1f8a5b; --read:#2f9be8; --tick:#8a82a3;
+    --danger:#b4325a; --shadow:rgba(124,92,196,.16);
   }
+  :root[data-theme="dark"]{
+    color-scheme:dark;
+    --bg:#13101a; --panel:#1b1725; --line:#2b2540; --field:#221d30;
+    --text:#ece7f7; --muted:#a79fbf;
+    --brand:#7757cf; --brand-ink:#b9a6f5; --brand-soft:#3a2f5c;
+    --bubble-in:#262033; --bubble-out:#3b3066;
+    --wall:#15111d; --wall-dot:#211b2d;
+    --online-text:#5fd9a0; --read:#4db0ff; --tick:#948cad;
+    --danger:#ff8fb1; --shadow:rgba(0,0,0,.45);
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      color-scheme:dark;
+      --bg:#13101a; --panel:#1b1725; --line:#2b2540; --field:#221d30;
+      --text:#ece7f7; --muted:#a79fbf;
+      --brand:#7757cf; --brand-ink:#b9a6f5; --brand-soft:#3a2f5c;
+      --bubble-in:#262033; --bubble-out:#3b3066;
+      --wall:#15111d; --wall-dot:#211b2d;
+      --online-text:#5fd9a0; --read:#4db0ff; --tick:#948cad;
+      --danger:#ff8fb1; --shadow:rgba(0,0,0,.45);
+    }
+  }
+
   *{box-sizing:border-box}
   html,body{height:100%}
-  body{margin:0;font-family:'Nunito',system-ui,sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
+  body{margin:0;font-family:'Nunito',system-ui,-apple-system,'Apple Color Emoji','Segoe UI',sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased}
   button,input,textarea{font:inherit;color:inherit}
   .hidden{display:none !important}
+  .vh{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;pointer-events:none}
+  svg{flex:none}
 
-  /* ---------- Auth & setup ---------- */
+  /* ---------- Auth ---------- */
   .center{min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:20px}
-  .card{width:min(400px,100%);background:#fff;border-radius:28px;padding:32px 28px;box-shadow:0 20px 60px rgba(124,92,196,.14)}
-  .logo{width:56px;height:56px;border-radius:18px;background:var(--brand-soft);display:flex;align-items:center;justify-content:center;margin-bottom:14px}
+  .card{width:min(410px,100%);background:var(--panel);border-radius:28px;padding:30px 26px;box-shadow:0 20px 60px var(--shadow)}
+  .logo{width:56px;height:56px;border-radius:18px;background:var(--brand-soft);color:var(--brand-ink);display:flex;align-items:center;justify-content:center;margin-bottom:14px}
   .card h1{margin:0 0 4px;font-size:26px;font-weight:800}
-  .lead{margin:0 0 20px;color:var(--muted);font-size:15px}
+  .lead{margin:0 0 18px;color:var(--muted);font-size:15px}
+  .tabs{display:flex;gap:6px;background:var(--bg);padding:5px;border-radius:16px;margin-bottom:18px}
+  .tab{flex:1;border:0;background:none;padding:10px;border-radius:12px;font-weight:800;color:var(--muted);cursor:pointer}
+  .tab.on{background:var(--panel);color:var(--text);box-shadow:0 2px 8px var(--shadow)}
   .field{margin-bottom:14px}
   .field label{display:block;font-size:13px;font-weight:700;color:var(--muted);margin-bottom:6px}
-  .field input[type=text],.field input[type=email],.field input:not([type]){width:100%;padding:14px 16px;border-radius:16px;border:2px solid var(--line);background:#fcfaff;font-size:16px}
-  .field input:focus{outline:none;border-color:var(--brand)}
+  .field input{width:100%;padding:14px 16px;border-radius:16px;border:2px solid var(--line);background:var(--field);font-size:16px}
+  .field input:focus,.cap-in:focus{outline:none;border-color:var(--brand)}
+  .field input:disabled{opacity:.6;cursor:not-allowed}
+  .note{font-size:12px;color:var(--muted);margin:6px 2px 0}
+  .pw{position:relative}
+  .pw input{padding-right:78px}
+  .eye{position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:0;color:var(--brand-ink);font-weight:800;font-size:13px;cursor:pointer;padding:10px}
   .btn{width:100%;padding:14px;border:0;border-radius:16px;background:var(--brand);color:#fff;font-weight:800;font-size:16px;cursor:pointer}
   .btn.soft{background:var(--brand-soft);color:var(--text)}
   .btn:disabled{opacity:.55;cursor:not-allowed}
   .row2{display:flex;justify-content:space-between;margin-top:12px}
-  .link{background:none;border:0;color:var(--brand);font-weight:700;cursor:pointer;padding:4px 0}
+  .link{background:none;border:0;color:var(--brand-ink);font-weight:700;cursor:pointer;padding:4px 0}
   .link:disabled{color:var(--muted);cursor:not-allowed}
-  .err{color:#b4325a;font-size:14px;min-height:20px;margin:12px 0 0}
+  .err{color:var(--danger);font-size:14px;min-height:20px;margin:12px 0 0}
   .warn{background:#fff0c9;color:#5c4400;padding:12px 16px;text-align:center;font-weight:700}
 
   /* ---------- Avatar ---------- */
   .avw{position:relative;flex:none}
-  .avw .av{width:100%;height:100%;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;color:var(--text);text-transform:uppercase}
+  .avw .av{width:100%;height:100%;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;color:#3b3350;text-transform:uppercase}
   .avimg{width:100%;height:100%;border-radius:50%;object-fit:cover;display:block;background:var(--bg)}
-  .dot{position:absolute;right:0;bottom:0;width:13px;height:13px;border-radius:50%;background:var(--online);border:2.5px solid #fff}
+  .dot{position:absolute;right:0;bottom:0;width:13px;height:13px;border-radius:50%;background:var(--online);border:2.5px solid var(--panel)}
   .avbtn{border:0;background:none;padding:0;cursor:pointer;border-radius:50%;flex:none;position:relative}
-  .avbtn::after{content:'';position:absolute;inset:0;border-radius:50%;box-shadow:0 0 0 0 var(--brand-soft);transition:box-shadow .2s}
-  .avbtn:hover::after,.avbtn:focus-visible::after{box-shadow:0 0 0 4px var(--brand-soft)}
+  .avbtn:hover,.avbtn:focus-visible{box-shadow:0 0 0 4px var(--brand-soft)}
 
   /* ---------- App ---------- */
   .app{display:grid;grid-template-columns:360px 1fr;height:100dvh;max-width:1400px;margin:0 auto;background:var(--panel)}
   .sidebar{display:flex;flex-direction:column;border-right:1px solid var(--line);min-height:0;background:var(--panel)}
-  .side-head{display:flex;align-items:center;gap:12px;padding:16px 16px 10px}
+  .side-head{display:flex;align-items:center;gap:10px;padding:16px 16px 10px}
   .me{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.25}
   .me b{font-size:17px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .me span{font-size:12px;color:var(--muted)}
-  .icon{width:40px;height:40px;border-radius:14px;border:0;background:var(--bg);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;flex:none}
+  .me span{font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .icon{width:40px;height:40px;border-radius:14px;border:0;background:var(--bg);color:var(--muted);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;flex:none}
   .icon:hover{background:var(--brand-soft)}
-  .icon.on{background:var(--brand-soft)}
-  .search{position:relative;margin:6px 16px 10px}
+  .icon.on{background:var(--brand-soft);color:var(--brand-ink)}
+  .search{position:relative;margin:6px 16px 10px;color:var(--muted)}
   .search svg{position:absolute;left:14px;top:50%;transform:translateY(-50%)}
   .search input{width:100%;padding:12px 16px 12px 42px;border:0;border-radius:16px;background:var(--bg);font-size:15px}
   .search input:focus{outline:2px solid var(--brand-soft)}
@@ -68,97 +107,134 @@
   .item:hover{background:var(--bg)}
   .item.active{background:var(--brand-soft)}
   .mid{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.3}
-  .mid b{font-size:15px}
+  .mid b{font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .mid .prev{display:flex;align-items:center;gap:5px;font-size:13px;color:var(--muted);min-width:0}
   .mid .ptx{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+  .mid .typing{color:var(--online-text);font-weight:700}
   .meta{display:flex;flex-direction:column;align-items:flex-end;gap:4px;font-size:12px;color:var(--muted)}
   .badge{min-width:20px;height:20px;padding:0 6px;border-radius:10px;background:var(--brand);color:#fff;font-weight:800;font-size:12px;display:inline-flex;align-items:center;justify-content:center}
 
-  .tick{flex:none;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;stroke:#8a82a3}
+  .tick{fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;stroke:var(--tick)}
   .tick.read{stroke:var(--read)}
 
   .chatpane{display:flex;flex-direction:column;min-height:0;min-width:0}
   .empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--muted);text-align:center;padding:24px;background:var(--bg)}
   .empty .logo{width:72px;height:72px;border-radius:24px;margin:0}
-  .chat{flex:1;display:flex;flex-direction:column;min-height:0}
+  .chat{flex:1;display:flex;flex-direction:column;min-height:0;position:relative}
   .chat-head{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line);background:var(--panel)}
+  .head-btn{display:flex;align-items:center;gap:12px;background:none;border:0;padding:0;text-align:left;cursor:pointer;min-width:0;flex:1}
   .who{display:flex;flex-direction:column;line-height:1.25;min-width:0}
-  .who b{font-size:17px}
+  .who b{font-size:17px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .status{font-size:12px;color:var(--muted)}
   .status.on{color:var(--online-text);font-weight:700}
   .back{display:none}
   .msgs{flex:1;overflow-y:auto;padding:18px 16px;display:flex;flex-direction:column;gap:6px;
-    background-color:#f8f3fd;background-image:radial-gradient(#eadff7 1.6px,transparent 1.6px);background-size:24px 24px}
-  .day{align-self:center;margin:10px 0 6px;padding:4px 14px;border-radius:999px;background:#fff;color:var(--muted);font-size:12px;font-weight:700}
-  .msg{max-width:min(78%,520px);padding:8px 12px 6px;border-radius:18px;font-size:15px;line-height:1.45;box-shadow:0 1px 0 rgba(60,40,100,.05)}
+    background-color:var(--wall);background-image:radial-gradient(var(--wall-dot) 1.6px,transparent 1.6px);background-size:24px 24px}
+  .day{align-self:center;margin:10px 0 6px;padding:4px 14px;border-radius:999px;background:var(--panel);color:var(--muted);font-size:12px;font-weight:700}
+  .msg{max-width:min(78%,520px);padding:8px 12px 6px;border-radius:18px;font-size:15px;line-height:1.45;box-shadow:0 1px 0 rgba(60,40,100,.06)}
   .msg::after{content:'';display:block;clear:both}
-  .msg.in{align-self:flex-start;background:#fff;border-bottom-left-radius:6px}
-  .msg.out{align-self:flex-end;background:var(--brand-soft);border-bottom-right-radius:6px}
+  .msg.in{align-self:flex-start;background:var(--bubble-in);border-bottom-left-radius:6px}
+  .msg.out{align-self:flex-end;background:var(--bubble-out);border-bottom-right-radius:6px}
   .txt{white-space:pre-wrap;word-break:break-word}
   .time{float:right;margin:8px 0 0 12px;font-size:11px;color:var(--muted);display:inline-flex;align-items:center;gap:4px;line-height:1}
+  .emo{width:1.25em;height:1.25em;vertical-align:-.28em;display:inline-block;-webkit-user-drag:none}
+  .msg.bigemo,.msg.sticker{background:transparent;box-shadow:none;padding:0}
+  .msg.bigemo .txt{font-size:38px;line-height:1.2}
+  .msg.bigemo .emo{width:1.1em;height:1.1em;vertical-align:-.18em}
+  .msg.bigemo .time,.msg.sticker .time{float:none;width:fit-content;margin:2px 0 0 auto;padding:3px 9px;background:var(--panel);border-radius:999px}
   .msg.media{padding:4px 4px 6px}
   .msg.media .cap{padding:6px 8px 0}
   .msg.media .time{margin:4px 6px 0 10px}
-  .mimg{border-radius:15px;overflow:hidden;background:#efe8fb;cursor:zoom-in;max-width:100%}
+  .mimg{border-radius:15px;overflow:hidden;background:var(--brand-soft);cursor:zoom-in;max-width:100%}
   .mimg img{display:block;width:100%;height:100%;object-fit:cover}
-  .msg.sticker{background:transparent;box-shadow:none;padding:0}
   .stk{width:150px;height:150px}
   .stk img{display:block;width:100%;height:100%;object-fit:contain}
-  .msg.sticker .time{float:none;width:fit-content;margin:2px 0 0 auto;padding:3px 9px;background:rgba(255,255,255,.9);border-radius:999px}
+  .mimg.fail,.stk.fail{display:flex;align-items:center;justify-content:center;text-align:center;padding:8px;font-size:12px;color:var(--muted);cursor:default}
+  .stk.fail{background:var(--bg);border-radius:16px}
 
-  .tray{border-top:1px solid var(--line);background:var(--panel);padding:10px 14px 12px;max-height:230px;display:flex;flex-direction:column}
+  .vn{display:flex;align-items:center;gap:10px;min-width:220px;padding:2px 0}
+  .vn-play{width:38px;height:38px;border-radius:50%;border:0;background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none}
+  .vn-wave{flex:1;display:flex;align-items:center;gap:2px;height:30px;cursor:pointer}
+  .vn-wave span{flex:1;min-width:2px;border-radius:2px;background:var(--tick);opacity:.55}
+  .vn-wave span.on{background:var(--brand-ink);opacity:1}
+  .vn-dur{font-size:12px;color:var(--muted);min-width:34px;text-align:right;font-variant-numeric:tabular-nums}
+
+  .panel{border-top:1px solid var(--line);background:var(--panel);padding:10px 14px 12px;display:flex;flex-direction:column}
+  .tray{max-height:230px}
   .tray-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
   .tray-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(74px,1fr));gap:8px;overflow-y:auto}
   .tile{position:relative;aspect-ratio:1;border-radius:16px;background:var(--bg);border:0;padding:4px;cursor:pointer}
   .tile img{width:100%;height:100%;object-fit:contain;display:block}
-  .tile.add{background:transparent;border:2px dashed var(--brand-soft);color:var(--brand);font-weight:800;font-size:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
-  .tile .del{position:absolute;top:-4px;right:-4px;width:22px;height:22px;border-radius:50%;background:#b4325a;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;line-height:1}
+  .tile.add{background:transparent;border:2px dashed var(--brand-soft);color:var(--brand-ink);font-weight:800;font-size:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+  .tile .del{position:absolute;top:-4px;right:-4px;width:22px;height:22px;border-radius:50%;background:var(--danger);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;line-height:1}
+
+  .epanel{height:270px;padding:8px 10px 10px}
+  .etabs{display:flex;gap:4px;margin-bottom:6px;border-bottom:1px solid var(--line);padding-bottom:6px;overflow-x:auto}
+  .etab{border:0;background:none;border-radius:12px;padding:6px 10px;cursor:pointer;flex:none}
+  .etab.on{background:var(--brand-soft)}
+  .etab .emo{width:24px;height:24px;vertical-align:middle}
+  .egrid{flex:1;overflow-y:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(42px,1fr));gap:2px;align-content:start}
+  .ebtn{border:0;background:none;border-radius:12px;padding:5px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .ebtn:hover{background:var(--bg)}
+  .ebtn .emo{width:30px;height:30px;vertical-align:middle}
+
+  .menu{position:absolute;left:14px;bottom:70px;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:6px;box-shadow:0 10px 30px var(--shadow);z-index:5;display:flex;flex-direction:column;min-width:170px}
+  .menu button{display:flex;align-items:center;gap:10px;background:none;border:0;padding:11px 12px;border-radius:12px;cursor:pointer;font-weight:700;text-align:left}
+  .menu button:hover{background:var(--bg)}
+  .menu svg{color:var(--brand-ink)}
 
   .composer{display:flex;align-items:flex-end;gap:8px;padding:12px 14px calc(12px + env(safe-area-inset-bottom));background:var(--panel);border-top:1px solid var(--line)}
+  .cmp-main{display:flex;gap:8px;flex:1;align-items:flex-end;min-width:0}
   .composer .icon{width:46px;height:46px;border-radius:50%}
-  .composer textarea{flex:1;min-width:0;resize:none;border:0;background:var(--bg);border-radius:22px;padding:12px 16px;font-size:16px;max-height:120px;line-height:1.4}
-  .composer textarea:focus{outline:2px solid var(--brand-soft)}
-  .send{width:46px;height:46px;border-radius:50%;border:0;background:var(--brand);display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none}
+  .inwrap{flex:1;position:relative;display:flex;align-items:flex-end;background:var(--bg);border-radius:23px;min-width:0}
+  .inwrap textarea{flex:1;min-width:0;resize:none;border:0;background:transparent;border-radius:23px;padding:12px 46px 12px 16px;font-size:16px;max-height:120px;line-height:1.4;outline:none}
+  .emo-btn{position:absolute;right:6px;bottom:6px;width:34px;height:34px;border:0;background:none;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;border-radius:50%}
+  .emo-btn.on{color:var(--brand-ink)}
+  .send{width:46px;height:46px;border-radius:50%;border:0;background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none}
+  .send .ic-send{display:none}
+  .send.has-text .ic-send{display:block}
+  .send.has-text .ic-mic{display:none}
+  .cmp-rec{display:none;flex:1;align-items:center;gap:12px;min-width:0}
+  .composer.recording .cmp-main{display:none}
+  .composer.recording .cmp-rec{display:flex}
+  .rec-dot{width:12px;height:12px;border-radius:50%;background:#e5484d;animation:pulse 1s infinite}
+  @keyframes pulse{50%{opacity:.25}}
+  .rec-time{font-weight:800;font-variant-numeric:tabular-nums}
+  .rec-hint{color:var(--muted);font-size:14px}
 
   /* ---------- Modal ---------- */
-  .modal-back{position:fixed;inset:0;background:rgba(59,51,80,.5);display:flex;align-items:center;justify-content:center;padding:16px;z-index:20}
-  .modal{background:#fff;border-radius:26px;padding:22px;width:min(420px,100%);max-height:94dvh;overflow:auto}
+  .modal-back{position:fixed;inset:0;background:rgba(20,14,35,.55);display:flex;align-items:center;justify-content:center;padding:16px;z-index:20}
+  .modal{background:var(--panel);border-radius:26px;padding:22px;width:min(430px,100%);max-height:94dvh;overflow:auto}
   .modal h2{margin:0 0 14px;font-size:20px;font-weight:800}
+  .modal h3{margin:18px 0 8px;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
   .modal .btns{display:flex;gap:10px;margin-top:14px}
   .modal .btns .btn{padding:12px}
   .prevbox{border-radius:18px;overflow:hidden;background:var(--bg);display:flex;justify-content:center}
   .prevbox img{max-width:100%;max-height:46dvh;display:block}
-  .cap-in{width:100%;margin-top:12px;padding:12px 16px;border:2px solid var(--line);border-radius:16px;background:#fcfaff;font-size:15px}
-  .cap-in:focus{outline:none;border-color:var(--brand)}
-  .pf-center{display:flex;flex-direction:column;align-items:center;gap:6px;margin-bottom:16px}
-  .pf-center b{font-size:18px}
-  .pf-center span{color:var(--muted);font-size:13px}
-  .stk-canvas{display:block;width:min(300px,100%);aspect-ratio:1;margin:0 auto;border-radius:20px;touch-action:none;cursor:grab;
-    background-color:#fff;
-    background-image:linear-gradient(45deg,#eee 25%,transparent 25%),linear-gradient(-45deg,#eee 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#eee 75%),linear-gradient(-45deg,transparent 75%,#eee 75%);
-    background-size:20px 20px;background-position:0 0,0 10px,10px -10px,-10px 0}
-  .stk-canvas:active{cursor:grabbing}
-  .chips{display:flex;gap:8px;margin:14px 0 4px;flex-wrap:wrap}
-  .chip{padding:8px 14px;border-radius:999px;border:2px solid var(--line);background:#fff;font-weight:700;font-size:14px;cursor:pointer}
-  .chip.on{border-color:var(--brand);background:var(--brand-soft)}
-  .ctl{display:flex;align-items:center;gap:12px;margin-top:10px;font-size:14px;font-weight:700;color:var(--muted)}
-  .ctl input[type=range]{flex:1;accent-color:var(--brand)}
-  .ctl input[type=checkbox]{width:18px;height:18px;accent-color:var(--brand)}
-  .small-hint{font-size:12px;color:var(--muted);text-align:center;margin:8px 0 0}
-  .head-btn{display:flex;align-items:center;gap:12px;background:none;border:0;padding:0;text-align:left;cursor:pointer;min-width:0;flex:1}
-  .me span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .count{font-size:12px;color:var(--muted);text-align:right;margin-top:4px}
+  .cap-in{width:100%;margin-top:12px;padding:12px 16px;border:2px solid var(--line);border-radius:16px;background:var(--field);font-size:15px}
   textarea.cap-in{resize:none;font-family:inherit;line-height:1.4;margin-top:0;display:block}
+  .count{font-size:12px;color:var(--muted);text-align:right;margin-top:4px}
+  .pf-center{display:flex;flex-direction:column;align-items:center;gap:6px;margin-bottom:16px}
   .pf-links{display:flex;gap:18px;justify-content:center}
   .view-name{font-size:20px;font-weight:800;margin-top:10px}
   .view-nick{color:var(--muted);font-size:14px}
   .bio-box{margin-top:14px;padding:14px 16px;border-radius:16px;background:var(--bg);white-space:pre-wrap;word-break:break-word;font-size:15px}
   .bio-box.empty-bio{color:var(--muted)}
-  .mimg.fail,.stk.fail{display:flex;align-items:center;justify-content:center;text-align:center;padding:8px;font-size:12px;color:var(--muted);cursor:default}
-  .stk.fail{background:var(--bg);border-radius:16px}
-  .lb{background:rgba(30,24,45,.92);cursor:zoom-out}
+  .stk-canvas{display:block;width:min(300px,100%);aspect-ratio:1;margin:0 auto;border-radius:20px;touch-action:none;cursor:grab;
+    background-color:#fff;
+    background-image:linear-gradient(45deg,#e6e6e6 25%,transparent 25%),linear-gradient(-45deg,#e6e6e6 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#e6e6e6 75%),linear-gradient(-45deg,transparent 75%,#e6e6e6 75%);
+    background-size:20px 20px;background-position:0 0,0 10px,10px -10px,-10px 0}
+  .stk-canvas:active{cursor:grabbing}
+  .chips{display:flex;gap:8px;margin:10px 0 4px;flex-wrap:wrap}
+  .chip{padding:8px 14px;border-radius:999px;border:2px solid var(--line);background:var(--panel);font-weight:700;font-size:14px;cursor:pointer}
+  .chip.on{border-color:var(--brand);background:var(--brand-soft)}
+  .ctl{display:flex;align-items:center;gap:12px;margin-top:10px;font-size:14px;font-weight:700;color:var(--muted)}
+  .ctl input[type=range]{flex:1;accent-color:var(--brand)}
+  .ctl input[type=checkbox]{width:18px;height:18px;accent-color:var(--brand)}
+  .small-hint{font-size:12px;color:var(--muted);text-align:center;margin:8px 0 0}
+  .lb{background:rgba(20,14,35,.93);cursor:zoom-out}
   .lb img{max-width:96vw;max-height:92dvh;border-radius:12px;display:block}
-  .toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);background:var(--text);color:#fff;padding:10px 18px;border-radius:14px;font-size:14px;opacity:0;pointer-events:none;transition:.25s;z-index:30;max-width:90vw}
+  .toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);background:var(--text);color:var(--panel);padding:11px 18px;border-radius:14px;font-size:14px;opacity:0;pointer-events:none;transition:.25s;z-index:30;max-width:90vw;font-weight:600}
   .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
 
   @media (max-width:760px){
@@ -167,7 +243,7 @@
     .app.show-chat .sidebar{display:none}
     .app.show-chat .chatpane{display:flex}
     .back{display:inline-flex}
-    .msg{max-width:84%}
+    .msg{max-width:86%}
   }
 </style>
 </head>
@@ -175,35 +251,89 @@
 
 <div id="configWarn" class="warn hidden">Isi SUPABASE_URL dan SUPABASE_ANON_KEY di bagian script dulu, lalu muat ulang halaman.</div>
 
-<!-- Masuk -->
+<!-- Masuk / Daftar -->
 <main id="auth" class="center hidden">
   <div class="card">
     <div class="logo">
-      <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#7c5cc4" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 18a4 4 0 0 1-.6-7.96A6 6 0 0 1 18 9.5a4.25 4.25 0 0 1-.5 8.5H7z"/></svg>
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 18a4 4 0 0 1-.6-7.96A6 6 0 0 1 18 9.5a4.25 4.25 0 0 1-.5 8.5H7z"/></svg>
     </div>
     <h1>Cimel Chats</h1>
-    <p class="lead">Ngobrol santai sama teman. Masuk pakai email, kode dikirim ke Gmail kamu.</p>
+    <p class="lead" id="authLead">Ngobrol santai sama teman.</p>
 
-    <div id="stepEmail">
-      <div class="field">
-        <label for="email">Email</label>
-        <input id="email" type="email" inputmode="email" autocomplete="email" placeholder="kamu@gmail.com">
-      </div>
-      <button class="btn" id="btnSend">Kirim kode</button>
+    <div class="tabs" id="tabs">
+      <button type="button" class="tab on" id="tabLogin">Masuk</button>
+      <button type="button" class="tab" id="tabReg">Daftar</button>
     </div>
 
-    <div id="stepCode" class="hidden">
-      <p class="lead" style="margin-bottom:14px">Kode dikirim ke <b id="sentTo"></b></p>
+    <form id="fLogin" novalidate>
       <div class="field">
-        <label for="code">Kode verifikasi</label>
-        <input id="code" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="123456">
+        <label for="lEmail">Email</label>
+        <input id="lEmail" type="email" inputmode="email" autocomplete="username" placeholder="kamu@gmail.com">
       </div>
-      <button class="btn" id="btnVerify">Masuk</button>
+      <div class="field">
+        <label for="lPass">Password</label>
+        <div class="pw"><input id="lPass" type="password" autocomplete="current-password" placeholder="Password"><button type="button" class="eye" data-eye="lPass">Lihat</button></div>
+      </div>
+      <button class="btn" type="submit" id="btnLogin">Masuk</button>
+      <div class="row2"><button type="button" class="link" id="goForgot">Lupa password?</button></div>
+    </form>
+
+    <form id="fReg" class="hidden" novalidate>
+      <div class="field">
+        <label for="rEmail">Email</label>
+        <input id="rEmail" type="email" inputmode="email" autocomplete="username" placeholder="kamu@gmail.com">
+      </div>
+      <div class="field">
+        <label for="rPass">Password</label>
+        <div class="pw"><input id="rPass" type="password" autocomplete="new-password" placeholder="Minimal 8 karakter"><button type="button" class="eye" data-eye="rPass">Lihat</button></div>
+      </div>
+      <div class="field">
+        <label for="rPass2">Ulangi password</label>
+        <div class="pw"><input id="rPass2" type="password" autocomplete="new-password" placeholder="Ulangi password"><button type="button" class="eye" data-eye="rPass2">Lihat</button></div>
+      </div>
+      <button class="btn" type="submit" id="btnReg">Daftar</button>
+    </form>
+
+    <form id="fVerify" class="hidden" novalidate>
+      <p class="lead">Kode verifikasi dikirim ke <b id="vSentTo"></b></p>
+      <div class="field">
+        <label for="vCode">Kode verifikasi</label>
+        <input id="vCode" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="123456">
+      </div>
+      <button class="btn" type="submit" id="btnVerify">Verifikasi</button>
       <div class="row2">
-        <button class="link" id="btnResend">Kirim ulang</button>
-        <button class="link" id="btnChange">Ganti email</button>
+        <button type="button" class="link" id="vResend">Kirim ulang</button>
+        <button type="button" class="link" data-back>Kembali</button>
       </div>
-    </div>
+    </form>
+
+    <form id="fForgot" class="hidden" novalidate>
+      <p class="lead">Masukkan email akunmu. Kami kirim kode untuk membuat password baru.</p>
+      <div class="field">
+        <label for="fEmail">Email</label>
+        <input id="fEmail" type="email" inputmode="email" autocomplete="username" placeholder="kamu@gmail.com">
+      </div>
+      <button class="btn" type="submit" id="btnForgot">Kirim kode</button>
+      <div class="row2"><button type="button" class="link" data-back>Kembali</button></div>
+    </form>
+
+    <form id="fReset" class="hidden" novalidate>
+      <p class="lead">Kode dikirim ke <b id="rsSentTo"></b></p>
+      <div class="field">
+        <label for="rsCode">Kode</label>
+        <input id="rsCode" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="123456">
+      </div>
+      <div class="field">
+        <label for="rsPass">Password baru</label>
+        <div class="pw"><input id="rsPass" type="password" autocomplete="new-password" placeholder="Minimal 8 karakter"><button type="button" class="eye" data-eye="rsPass">Lihat</button></div>
+      </div>
+      <button class="btn" type="submit" id="btnReset">Simpan password &amp; masuk</button>
+      <div class="row2">
+        <button type="button" class="link" id="rsResend">Kirim ulang</button>
+        <button type="button" class="link" data-back>Kembali</button>
+      </div>
+    </form>
+
     <p class="err" id="authErr" role="alert"></p>
   </div>
 </main>
@@ -216,9 +346,9 @@
     <div class="field">
       <label for="nick">Nick</label>
       <input id="nick" autocomplete="off" autocapitalize="none" maxlength="20" placeholder="contoh: luna.s">
+      <p class="note">3-20 karakter: huruf kecil, angka, titik, atau garis bawah. Nick hanya bisa diganti 3 hari sekali, dan nick yang sudah dipakai tidak bisa dipakai orang lain.</p>
     </div>
     <button class="btn" id="btnNick">Simpan</button>
-    <p class="lead" style="margin:12px 0 0;font-size:13px">3-20 karakter: huruf kecil, angka, titik, atau garis bawah.</p>
     <p class="err" id="nickErr" role="alert"></p>
   </div>
 </main>
@@ -227,17 +357,17 @@
 <div id="app" class="app hidden">
   <aside class="sidebar">
     <div class="side-head">
-      <button class="avbtn" id="btnProfile" aria-label="Profil saya"></button>
+      <button class="avbtn" id="btnProfile" aria-label="Pengaturan profil"></button>
       <div class="me"><b id="meNick"></b><span id="meSub"></span></div>
-      <button class="icon" id="btnSettings" aria-label="Pengaturan profil">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6f6788" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h8M18 6h2M4 12h2M12 12h8M4 18h10M20 18h0"/><circle cx="15" cy="6" r="2.4"/><circle cx="9" cy="12" r="2.4"/><circle cx="17" cy="18" r="2.4"/></svg>
+      <button class="icon" id="btnSettings" aria-label="Pengaturan">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h8M18 6h2M4 12h2M12 12h8M4 18h10M20 18h0"/><circle cx="15" cy="6" r="2.4"/><circle cx="9" cy="12" r="2.4"/><circle cx="17" cy="18" r="2.4"/></svg>
       </button>
       <button class="icon" id="btnLogout" aria-label="Keluar">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6f6788" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
       </button>
     </div>
     <div class="search">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6f6788" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
       <input id="search" type="search" placeholder="Cari nick teman" autocomplete="off" aria-label="Cari nick teman">
     </div>
     <div id="list" class="list"></div>
@@ -246,7 +376,7 @@
   <section class="chatpane">
     <div id="empty" class="empty">
       <div class="logo">
-        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#7c5cc4" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 18a4 4 0 0 1-.6-7.96A6 6 0 0 1 18 9.5a4.25 4.25 0 0 1-.5 8.5H7z"/></svg>
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 18a4 4 0 0 1-.6-7.96A6 6 0 0 1 18 9.5a4.25 4.25 0 0 1-.5 8.5H7z"/></svg>
       </div>
       <b>Pilih chat atau cari nick teman</b>
       <span>Pesan masuk muncul langsung tanpa perlu muat ulang.</span>
@@ -255,7 +385,7 @@
     <div id="chat" class="chat hidden">
       <header class="chat-head">
         <button class="icon back" id="btnBack" aria-label="Kembali">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3b3350" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
         </button>
         <button type="button" class="head-btn" id="btnViewProfile" aria-label="Lihat profil">
           <div id="cAvatar"></div>
@@ -264,7 +394,7 @@
       </header>
       <div id="msgs" class="msgs"></div>
 
-      <div id="tray" class="tray hidden">
+      <div id="tray" class="panel tray hidden">
         <div class="tray-head">
           <b>Stikerku</b>
           <button type="button" class="link" id="btnTrayEdit">Hapus</button>
@@ -272,30 +402,59 @@
         <div id="trayGrid" class="tray-grid"></div>
       </div>
 
-      <form id="composer" class="composer">
-        <button type="button" class="icon" id="btnImg" aria-label="Kirim foto">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6f6788" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+      <div id="emojiPanel" class="panel epanel hidden">
+        <div class="etabs" id="etabs"></div>
+        <div class="egrid" id="egrid"></div>
+      </div>
+
+      <div id="attachMenu" class="menu hidden" role="menu">
+        <button type="button" role="menuitem" id="mnuPhoto">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+          Foto
         </button>
-        <button type="button" class="icon" id="btnStk" aria-label="Stiker">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6f6788" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><path d="M9 9h.01M15 9h.01" stroke-width="2.6"/></svg>
+        <button type="button" role="menuitem" id="mnuSticker">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-8-8h4a4 4 0 0 1 4 4z"/><path d="M8.5 13.5s1 1.5 3.5 1.5 3.5-1.5 3.5-1.5"/><path d="M9 9.5h.01M14 9.5h.01" stroke-width="2.6"/></svg>
+          Stiker
         </button>
-        <textarea id="input" rows="1" maxlength="2000" placeholder="Ketik pesan" aria-label="Pesan"></textarea>
-        <button class="send" type="submit" aria-label="Kirim">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+      </div>
+
+      <form id="composer" class="composer" novalidate>
+        <div class="cmp-main">
+          <button type="button" class="icon" id="btnPlus" aria-label="Lampiran" aria-haspopup="true">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+          </button>
+          <div class="inwrap">
+            <textarea id="input" rows="1" maxlength="2000" placeholder="Ketik pesan" aria-label="Pesan"></textarea>
+            <button type="button" class="emo-btn" id="btnEmoji" aria-label="Emoji">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><path d="M9 9h.01M15 9h.01" stroke-width="2.6"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="cmp-rec">
+          <button type="button" class="icon" id="btnRecCancel" aria-label="Batalkan rekaman">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14M10 10v6M14 10v6"/></svg>
+          </button>
+          <span class="rec-dot"></span>
+          <span class="rec-time" id="recTime">0:00</span>
+          <span class="rec-hint">Merekam suara...</span>
+        </div>
+        <button type="button" class="send" id="btnSend" aria-label="Rekam suara">
+          <svg class="ic-mic" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
+          <svg class="ic-send" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
         </button>
       </form>
     </div>
   </section>
 </div>
 
-<input id="fileImg" type="file" accept="image/*" class="hidden">
-<input id="fileAvatar" type="file" accept="image/*" class="hidden">
-<input id="fileSticker" type="file" accept="image/*" class="hidden">
+<input id="fileImg" type="file" accept="image/*" class="vh" tabindex="-1" aria-hidden="true">
+<input id="fileAvatar" type="file" accept="image/*" class="vh" tabindex="-1" aria-hidden="true">
+<input id="fileSticker" type="file" accept="image/*" class="vh" tabindex="-1" aria-hidden="true">
 
-<!-- Modal: pengaturan profil -->
+<!-- Modal: pengaturan -->
 <div id="mProfile" class="modal-back hidden">
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="pfTitle">
-    <h2 id="pfTitle">Pengaturan profil</h2>
+    <h2 id="pfTitle">Pengaturan</h2>
     <div class="pf-center">
       <div id="pfAvatar"></div>
       <div class="pf-links">
@@ -310,17 +469,32 @@
     <div class="field">
       <label for="pfNick">Nick (ID)</label>
       <input id="pfNick" maxlength="20" autocomplete="off" autocapitalize="none">
+      <p class="note" id="pfNickNote"></p>
     </div>
     <div class="field">
       <label for="pfBio">Bio</label>
       <textarea id="pfBio" class="cap-in" rows="3" maxlength="150" placeholder="Ceritakan sedikit tentang kamu"></textarea>
       <div class="count" id="pfCount"></div>
     </div>
-    <div class="btns">
-      <button class="btn soft" data-close>Batal</button>
-      <button class="btn" id="btnPfSave">Simpan</button>
-    </div>
+    <button class="btn" id="btnPfSave">Simpan profil</button>
     <p class="err" id="pfErr" role="alert"></p>
+
+    <h3>Tema</h3>
+    <div class="chips" id="themeChips">
+      <button type="button" class="chip" data-theme-set="light">Terang</button>
+      <button type="button" class="chip" data-theme-set="dark">Gelap</button>
+      <button type="button" class="chip" data-theme-set="auto">Otomatis</button>
+    </div>
+
+    <h3>Password</h3>
+    <div class="field">
+      <label for="pfPass">Password baru</label>
+      <div class="pw"><input id="pfPass" type="password" autocomplete="new-password" placeholder="Minimal 8 karakter"><button type="button" class="eye" data-eye="pfPass">Lihat</button></div>
+    </div>
+    <button class="btn soft" id="btnPfPass">Simpan password</button>
+    <p class="err" id="pfPassErr" role="alert"></p>
+
+    <div class="btns"><button class="btn soft" data-close>Tutup</button></div>
   </div>
 </div>
 
@@ -344,6 +518,7 @@
     <h2 id="imgTitle">Kirim foto</h2>
     <div class="prevbox"><img id="imgPrev" alt="Pratinjau foto"></div>
     <input id="imgCap" class="cap-in" maxlength="500" placeholder="Tambah keterangan (opsional)" aria-label="Keterangan foto">
+    <p class="err" id="imgErr" role="alert"></p>
     <div class="btns">
       <button class="btn soft" data-close>Batal</button>
       <button class="btn" id="btnImgSend">Kirim</button>
@@ -408,25 +583,21 @@
   }
 
   var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  var PCOLS = 'id,nick,display_name,bio,avatar_url,last_seen';
+  var PCOLS = 'id,nick,display_name,bio,avatar_url,last_seen,nick_changed_at';
 
   var me = null, myProfile = null, activeId = null;
-  var profiles = {};     // id -> profil
-  var msgs = {};         // otherId -> [pesan]
-  var loaded = {};       // otherId -> riwayat penuh sudah dimuat
-  var online = {};       // id -> true (presence)
-  var urlCache = {};     // path -> {url, t}
-  var stickers = [];     // koleksi stikerku
-  var trayEdit = false;
-  var msgChannel = null, presenceCh = null, beatTimer = null;
-  var started = false, authEmail = '', cd = null, searchTimer = null;
+  var profiles = {}, msgs = {}, loaded = {}, online = {};
+  var urlCache = {}, stickers = [], trayEdit = false;
+  var typingFrom = {}, typingTimers = {}, lastTypingSent = 0;
+  var msgChannel = null, presenceCh = null, presenceReady = false, beatTimer = null;
+  var started = false, pendingEmail = '', cdTimers = {}, searchTimer = null;
 
   /* ---------- util ---------- */
   var toastTimer = null;
-  function toast(t){
+  function toast(t, ms){
     var el = $('toast'); el.textContent = t; el.classList.add('on');
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(function(){ el.classList.remove('on'); }, 2800);
+    toastTimer = setTimeout(function(){ el.classList.remove('on'); }, ms || 3000);
   }
   function setMsg(id, t){ $(id).textContent = t || ''; }
   function showScreen(name){
@@ -438,6 +609,7 @@
   }
   function isVisible(){ return document.visibilityState === 'visible'; }
   function dname(p){ return p && p.display_name ? p.display_name : '@' + (p ? p.nick : '...'); }
+  function fmtDur(s){ s = Math.max(0, Math.round(s)); return Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2); }
 
   var PALETTE = ['#ffd9e6','#d8f3e6','#dfe7ff','#fff0c9','#e4d8fa','#ffe0d1'];
   function avatar(p, size, dot){
@@ -450,7 +622,7 @@
     } else {
       var n = p.display_name || p.nick || '?', sum = 0;
       for(var i = 0; i < n.length; i++) sum += n.charCodeAt(i);
-      var a = h('div', 'av', n.charAt(0));
+      var a = h('div', 'av', Array.from(n)[0] || '?');
       a.style.fontSize = Math.round(size * 0.42) + 'px';
       a.style.background = PALETTE[sum % PALETTE.length];
       w.appendChild(a);
@@ -462,6 +634,9 @@
   function fmtTime(iso){
     return new Date(iso).toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'});
   }
+  function fmtDateTime(iso){
+    return new Date(iso).toLocaleString('id-ID', {day:'numeric', month:'long', hour:'2-digit', minute:'2-digit'});
+  }
   function dayLabel(iso){
     var d = new Date(iso), n = new Date(), y = new Date(n);
     y.setDate(n.getDate() - 1);
@@ -469,26 +644,112 @@
     if(d.toDateString() === y.toDateString()) return 'Kemarin';
     return d.toLocaleDateString('id-ID', {day:'numeric', month:'long', year:'numeric'});
   }
-
-  /* ---------- centang ---------- */
-  function msgState(m){ return m.read_at ? 'read' : (m.delivered_at ? 'delivered' : 'sent'); }
-  var STATE_LABEL = {sent: 'Terkirim', delivered: 'Sampai', read: 'Dibaca'};
-  function tickEl(state, small){
-    var NS = 'http://www.w3.org/2000/svg';
-    var s = document.createElementNS(NS, 'svg');
-    s.setAttribute('viewBox', '0 0 17 12');
-    s.setAttribute('width', small ? '14' : '17');
-    s.setAttribute('height', small ? '10' : '12');
-    s.setAttribute('class', 'tick ' + state);
-    s.setAttribute('role', 'img');
-    s.setAttribute('aria-label', STATE_LABEL[state]);
-    function path(d){ var p = document.createElementNS(NS, 'path'); p.setAttribute('d', d); s.appendChild(p); }
-    path('M1 6.5L4.3 9.8L10.7 2.5');
-    if(state !== 'sent') path('M5.3 6.5L8.6 9.8L15 2.5');
-    return s;
+  function lastSeenText(p){
+    return p.last_seen ? 'Terakhir dilihat ' + dayLabel(p.last_seen).toLowerCase() + ' ' + fmtTime(p.last_seen) : 'Offline';
   }
 
-  /* ---------- gambar: baca, ubah ukuran ---------- */
+  /* ---------- emoji gaya iPhone (gambar) ---------- */
+  var EMO_BASE = 'https://cdn.jsdelivr.net/npm/emoji-datasource-apple@15.1.2/img/apple/64/';
+  var EMOJI_RE = null;
+  try{
+    EMOJI_RE = new RegExp(
+      '(\\p{Regional_Indicator}{2})|([#*0-9]\\uFE0F?\\u20E3)|' +
+      '(\\p{Extended_Pictographic}(?:\\uFE0F|\\p{Emoji_Modifier})*(?:\\u200D\\p{Extended_Pictographic}(?:\\uFE0F|\\p{Emoji_Modifier})*)*)', 'gu');
+  }catch(e){}
+  function emojiFile(s, strip){
+    var cps = Array.from(s).map(function(c){ return c.codePointAt(0); });
+    if(strip) cps = cps.filter(function(c){ return c !== 0xfe0f; });
+    return cps.map(function(c){ return c.toString(16); }).join('-') + '.png';
+  }
+  function emojiImg(s){
+    var im = h('img', 'emo');
+    im.alt = s; im.draggable = false;
+    var tries = [emojiFile(s, true), emojiFile(s + '️', false)], seen = [emojiFile(s, false)];
+    im.onerror = function(){
+      var next = null;
+      while(tries.length){
+        var f = tries.shift();
+        if(seen.indexOf(f) < 0){ next = f; break; }
+      }
+      if(next){ seen.push(next); im.src = EMO_BASE + next; return; }
+      if(im.parentNode) im.parentNode.replaceChild(document.createTextNode(s), im);
+    };
+    im.src = EMO_BASE + seen[0];
+    return im;
+  }
+  function renderRich(el, text){
+    el.textContent = '';
+    if(!EMOJI_RE){ el.textContent = text; return; }
+    var last = 0, m;
+    EMOJI_RE.lastIndex = 0;
+    while((m = EMOJI_RE.exec(text))){
+      if(m.index > last) el.appendChild(document.createTextNode(text.slice(last, m.index)));
+      el.appendChild(emojiImg(m[0]));
+      last = m.index + m[0].length;
+    }
+    if(last < text.length) el.appendChild(document.createTextNode(text.slice(last)));
+  }
+  function onlyEmoji(text){
+    if(!EMOJI_RE) return false;
+    var t = (text || '').trim(), count = 0;
+    if(!t) return false;
+    var rest = t.replace(EMOJI_RE, function(){ count++; return ''; });
+    return count > 0 && count <= 3 && rest.replace(/\s/g, '') === '';
+  }
+
+  var EMOJI_SETS = [
+    ['Wajah', '😀😃😄😁😆😅😂🤣🥲☺️😊😇🙂🙃😉😌😍🥰😘😗😙😚😋😛😝😜🤪🤨🧐🤓😎🥸🤩🥳😏😒😞😔😟😕🙁☹️😣😖😫😩🥺😢😭😤😠😡🤬🤯😳🥵🥶😱😨😰😥😓🤗🤔🫣🤭🫢🤫🫠🤥😶😐😑😬🙄😯😦😧😮😲🥱😴🤤😪😵🤐🥴🤢🤮🤧😷🤒🤕🤑🤠😈👿👹👺🤡💩👻💀☠️👽👾🤖🎃'],
+    ['Gestur', '👋🤚🖐️✋🖖👌🤌🤏✌️🤞🫰🤟🤘🤙👈👉👆🖕👇☝️👍👎✊👊🤛🤜👏🙌🫶👐🤲🤝🙏✍️💅🤳💪🦾🦵🦶👂👃🧠👀👅👄👶🧒👦👧🧑👨👩🧓👴👵🙋‍♀️🙋‍♂️🤦‍♀️🤦‍♂️🤷‍♀️🤷‍♂️'],
+    ['Hati', '❤️🧡💛💚💙💜🖤🤍🤎💔❤️‍🔥💕💞💓💗💖💘💝💟✨💫⭐🌟💥💢💦💨💬💭💤🔥🎉🎊🎈🎁🏆🥇💯✅❌❗❓'],
+    ['Alam & makanan', '🐶🐱🐭🐹🐰🦊🐻🐼🐨🐯🦁🐮🐷🐸🐵🙈🙉🙊🐔🐧🐦🐤🦆🦅🦉🦇🐺🐗🐴🦄🐝🐛🦋🐌🐞🐢🐍🐙🐠🐬🐳🌸🌹🌺🌻🌼🌷🌱🌴🌵🍀🍁🍎🍊🍋🍌🍉🍇🍓🍒🍑🥭🍍🥥🥑🍔🍟🍕🌭🌮🍿🍜🍣🍦🍩🍪🎂🍫☕🍵🧋🍺'],
+    ['Aktivitas', '⚽🏀🏈⚾🎾🏐🎱🏓🎯🎮🕹️🎲🎵🎶🎤🎧🎸🎹📱💻📷🎥🔔📌🔒🔑💡📚✏️📝💰💎🚗✈️🚀🌍🌈☀️🌙⛅🌧️⚡❄️']
+  ];
+  var emojiCat = 0;
+  function emojiList(str){
+    if(!EMOJI_RE) return Array.from(str);
+    return str.match(EMOJI_RE) || [];
+  }
+  function renderEmojiPanel(){
+    var tabs = $('etabs'); tabs.textContent = '';
+    EMOJI_SETS.forEach(function(set, i){
+      var b = h('button', 'etab' + (i === emojiCat ? ' on' : ''));
+      b.type = 'button'; b.setAttribute('aria-label', set[0]); b.title = set[0];
+      b.appendChild(emojiImg(emojiList(set[1])[0]));
+      b.addEventListener('click', function(){ emojiCat = i; renderEmojiPanel(); });
+      tabs.appendChild(b);
+    });
+    var g = $('egrid'); g.textContent = ''; g.scrollTop = 0;
+    emojiList(EMOJI_SETS[emojiCat][1]).forEach(function(ch){
+      var b = h('button', 'ebtn'); b.type = 'button'; b.setAttribute('aria-label', ch);
+      b.appendChild(emojiImg(ch));
+      b.addEventListener('click', function(){ insertAtCursor(ch); });
+      g.appendChild(b);
+    });
+  }
+  function insertAtCursor(ch){
+    var t = $('input'), s = t.selectionStart || 0, e = t.selectionEnd || 0;
+    if(t.value.length + ch.length > 2000) return;
+    t.value = t.value.slice(0, s) + ch + t.value.slice(e);
+    t.selectionStart = t.selectionEnd = s + ch.length;
+    inputChanged();
+  }
+
+  /* ---------- tema ---------- */
+  function currentTheme(){
+    try{ var t = localStorage.getItem('cimel_theme'); if(t === 'light' || t === 'dark') return t; }catch(e){}
+    return 'auto';
+  }
+  function applyTheme(t){
+    var r = document.documentElement;
+    if(t === 'light' || t === 'dark') r.setAttribute('data-theme', t); else r.removeAttribute('data-theme');
+    try{ localStorage.setItem('cimel_theme', t); }catch(e){}
+    [].forEach.call($('themeChips').children, function(c){ c.classList.toggle('on', c.dataset.themeSet === t); });
+  }
+  $('themeChips').addEventListener('click', function(e){
+    var b = e.target.closest('[data-theme-set]'); if(b) applyTheme(b.dataset.themeSet);
+  });
+
+  /* ---------- gambar: baca & ubah ukuran ---------- */
   function decodeImage(file){
     return new Promise(function(res, rej){
       var u = URL.createObjectURL(file), im = new Image();
@@ -498,8 +759,8 @@
     });
   }
   async function loadBitmap(file){
-    if(!/^image\//.test(file.type)) throw new Error('File harus berupa gambar');
-    if(file.size > 20 * 1024 * 1024) throw new Error('Ukuran gambar maksimal 20 MB');
+    if(file.type && !/^image\//.test(file.type)) throw new Error('File harus berupa gambar');
+    if(file.size > 25 * 1024 * 1024) throw new Error('Ukuran gambar maksimal 25 MB');
     try{
       var r = await decodeImage(file);
       if(r.w && r.h) return r;
@@ -515,12 +776,14 @@
   function toBlob(c, type, q){ return new Promise(function(r){ c.toBlob(r, type, q); }); }
   async function fitJpeg(bmp, max){
     var s = Math.min(1, max / Math.max(bmp.w, bmp.h));
-    var w = Math.round(bmp.w * s), hh = Math.round(bmp.h * s);
+    var w = Math.max(1, Math.round(bmp.w * s)), hh = Math.max(1, Math.round(bmp.h * s));
     var c = document.createElement('canvas'); c.width = w; c.height = hh;
     var x = c.getContext('2d');
     x.fillStyle = '#fff'; x.fillRect(0, 0, w, hh);
     x.drawImage(bmp.src, 0, 0, w, hh);
-    return {blob: await toBlob(c, 'image/jpeg', 0.82), w: w, h: hh};
+    var blob = await toBlob(c, 'image/jpeg', 0.82);
+    if(!blob) throw new Error('Gagal memproses gambar');
+    return {blob: blob, w: w, h: hh};
   }
 
   /* ---------- URL media (bucket privat) ---------- */
@@ -563,69 +826,171 @@
         if(c) attachImg(e, c.url);
         else if(!e.querySelector('img')){ failed = true; e.textContent = 'Gagal memuat'; e.classList.add('fail'); }
       });
-      if(failed && lastSignErr) toast('Gagal memuat foto: ' + lastSignErr);
+      if(failed && lastSignErr) toast('Gagal memuat media: ' + lastSignErr, 6000);
     });
   }
 
-  /* ---------- masuk dengan kode email ---------- */
-  function startCooldown(){
-    var s = 30, b = $('btnResend');
-    b.disabled = true; clearInterval(cd);
-    b.textContent = 'Kirim ulang (' + s + ')';
-    cd = setInterval(function(){
+  /* ---------- masuk / daftar ---------- */
+  function authShow(name){
+    ['fLogin','fReg','fVerify','fForgot','fReset'].forEach(function(id){ $(id).classList.toggle('hidden', id !== name); });
+    var tabbed = name === 'fLogin' || name === 'fReg';
+    $('tabs').classList.toggle('hidden', !tabbed);
+    $('tabLogin').classList.toggle('on', name === 'fLogin');
+    $('tabReg').classList.toggle('on', name === 'fReg');
+    setMsg('authErr', '');
+  }
+  function validEmail(e){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); }
+  function authMsg(e){
+    var m = ((e && e.message) || '').toLowerCase();
+    if(m.indexOf('invalid login') >= 0) return 'Email atau password salah.';
+    if(m.indexOf('already registered') >= 0) return 'Email sudah terdaftar. Silakan masuk.';
+    if(m.indexOf('rate limit') >= 0 || m.indexOf('too many') >= 0 || (e && e.status === 429)) return 'Terlalu banyak permintaan email. Tunggu beberapa saat lalu coba lagi.';
+    if(m.indexOf('token') >= 0 && (m.indexOf('expired') >= 0 || m.indexOf('invalid') >= 0)) return 'Kode salah atau sudah kedaluwarsa.';
+    if(m.indexOf('different from the old') >= 0 || m.indexOf('same as the old') >= 0) return 'Password baru harus berbeda dari yang lama.';
+    if(m.indexOf('weak') >= 0) return 'Password terlalu lemah, coba yang lebih panjang.';
+    return (e && e.message) || 'Terjadi kesalahan.';
+  }
+  function cooldown(btn, label){
+    var s = 30;
+    clearInterval(cdTimers[btn.id]);
+    btn.disabled = true; btn.textContent = label + ' (' + s + ')';
+    cdTimers[btn.id] = setInterval(function(){
       s--;
-      if(s <= 0){ clearInterval(cd); b.disabled = false; b.textContent = 'Kirim ulang'; }
-      else b.textContent = 'Kirim ulang (' + s + ')';
+      if(s <= 0){ clearInterval(cdTimers[btn.id]); btn.disabled = false; btn.textContent = label; }
+      else btn.textContent = label + ' (' + s + ')';
     }, 1000);
   }
-  async function sendCode(){
-    var emailStepHidden = $('stepEmail').classList.contains('hidden');
-    var email = emailStepHidden ? authEmail : $('email').value.trim().toLowerCase();
+
+  [].forEach.call(document.querySelectorAll('[data-eye]'), function(b){
+    b.addEventListener('click', function(){
+      var i = $(this.dataset.eye), show = i.type === 'password';
+      i.type = show ? 'text' : 'password';
+      this.textContent = show ? 'Sembunyi' : 'Lihat';
+    });
+  });
+  [].forEach.call(document.querySelectorAll('[data-back]'), function(b){
+    b.addEventListener('click', function(){ authShow('fLogin'); });
+  });
+  $('tabLogin').addEventListener('click', function(){ authShow('fLogin'); });
+  $('tabReg').addEventListener('click', function(){ authShow('fReg'); });
+  $('goForgot').addEventListener('click', function(){ $('fEmail').value = $('lEmail').value; authShow('fForgot'); });
+
+  $('fLogin').addEventListener('submit', async function(ev){
+    ev.preventDefault();
+    var email = $('lEmail').value.trim().toLowerCase(), pass = $('lPass').value;
     setMsg('authErr', '');
-    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ setMsg('authErr', 'Email tidak valid.'); return; }
-    $('btnSend').disabled = true; $('btnResend').disabled = true;
-    var r = await sb.auth.signInWithOtp({email: email, options: {shouldCreateUser: true}});
-    $('btnSend').disabled = false;
+    if(!validEmail(email)){ setMsg('authErr', 'Email tidak valid.'); return; }
+    if(!pass){ setMsg('authErr', 'Masukkan password.'); return; }
+    $('btnLogin').disabled = true;
+    var r = await sb.auth.signInWithPassword({email: email, password: pass});
+    $('btnLogin').disabled = false;
     if(r.error){
-      setMsg('authErr', 'Gagal kirim kode: ' + r.error.message);
-      $('btnResend').disabled = false;
-      return;
+      if((r.error.message || '').toLowerCase().indexOf('not confirmed') >= 0){
+        pendingEmail = email; $('vSentTo').textContent = email; authShow('fVerify');
+        sb.auth.resend({type: 'signup', email: email}).then(function(){});
+        cooldown($('vResend'), 'Kirim ulang');
+        setMsg('authErr', 'Email belum diverifikasi. Kami kirim ulang kodenya.');
+        return;
+      }
+      setMsg('authErr', authMsg(r.error)); return;
     }
-    authEmail = email;
-    $('sentTo').textContent = email;
-    $('stepEmail').classList.add('hidden');
-    $('stepCode').classList.remove('hidden');
-    $('code').value = ''; $('code').focus();
-    startCooldown();
-  }
-  async function verifyCode(){
-    var token = $('code').value.replace(/\s/g, '');
+    afterLogin(r.data.user);
+  });
+
+  $('fReg').addEventListener('submit', async function(ev){
+    ev.preventDefault();
+    var email = $('rEmail').value.trim().toLowerCase(), p1 = $('rPass').value, p2 = $('rPass2').value;
+    setMsg('authErr', '');
+    if(!validEmail(email)){ setMsg('authErr', 'Email tidak valid.'); return; }
+    if(p1.length < 8){ setMsg('authErr', 'Password minimal 8 karakter.'); return; }
+    if(p1 !== p2){ setMsg('authErr', 'Password dan ulangi password tidak sama.'); return; }
+    $('btnReg').disabled = true;
+    var r = await sb.auth.signUp({email: email, password: p1});
+    $('btnReg').disabled = false;
+    if(r.error){ setMsg('authErr', authMsg(r.error)); return; }
+    if(r.data.session){ afterLogin(r.data.user); return; }
+    if(r.data.user && r.data.user.identities && r.data.user.identities.length === 0){
+      setMsg('authErr', 'Email sudah terdaftar. Silakan masuk.'); return;
+    }
+    pendingEmail = email; $('vSentTo').textContent = email;
+    authShow('fVerify'); $('vCode').value = ''; $('vCode').focus();
+    cooldown($('vResend'), 'Kirim ulang');
+  });
+
+  $('fVerify').addEventListener('submit', async function(ev){
+    ev.preventDefault();
+    var token = $('vCode').value.replace(/\s/g, '');
     setMsg('authErr', '');
     if(!/^\d{6,10}$/.test(token)){ setMsg('authErr', 'Masukkan kode angka dari email.'); return; }
     $('btnVerify').disabled = true;
-    var r = await sb.auth.verifyOtp({email: authEmail, token: token, type: 'email'});
+    var r = await sb.auth.verifyOtp({email: pendingEmail, token: token, type: 'signup'});
     $('btnVerify').disabled = false;
-    if(r.error || !r.data || !r.data.user){ setMsg('authErr', 'Kode salah atau sudah kedaluwarsa.'); return; }
+    if(r.error || !r.data || !r.data.user){ setMsg('authErr', authMsg(r.error || {message: 'invalid token'})); return; }
     afterLogin(r.data.user);
-  }
-  $('btnSend').addEventListener('click', sendCode);
-  $('email').addEventListener('keydown', function(e){ if(e.key === 'Enter') sendCode(); });
-  $('btnVerify').addEventListener('click', verifyCode);
-  $('code').addEventListener('keydown', function(e){ if(e.key === 'Enter') verifyCode(); });
-  $('btnResend').addEventListener('click', sendCode);
-  $('btnChange').addEventListener('click', function(){
-    clearInterval(cd);
-    $('stepCode').classList.add('hidden');
-    $('stepEmail').classList.remove('hidden');
-    setMsg('authErr', ''); $('email').focus();
+  });
+  $('vResend').addEventListener('click', async function(){
+    setMsg('authErr', '');
+    var r = await sb.auth.resend({type: 'signup', email: pendingEmail});
+    if(r.error){ setMsg('authErr', authMsg(r.error)); return; }
+    cooldown(this, 'Kirim ulang');
+  });
+
+  $('fForgot').addEventListener('submit', async function(ev){
+    ev.preventDefault();
+    var email = $('fEmail').value.trim().toLowerCase();
+    setMsg('authErr', '');
+    if(!validEmail(email)){ setMsg('authErr', 'Email tidak valid.'); return; }
+    $('btnForgot').disabled = true;
+    var r = await sb.auth.resetPasswordForEmail(email);
+    $('btnForgot').disabled = false;
+    if(r.error){ setMsg('authErr', authMsg(r.error)); return; }
+    pendingEmail = email; $('rsSentTo').textContent = email;
+    authShow('fReset'); $('rsCode').value = ''; $('rsCode').focus();
+    cooldown($('rsResend'), 'Kirim ulang');
+  });
+  $('rsResend').addEventListener('click', async function(){
+    setMsg('authErr', '');
+    var r = await sb.auth.resetPasswordForEmail(pendingEmail);
+    if(r.error){ setMsg('authErr', authMsg(r.error)); return; }
+    cooldown(this, 'Kirim ulang');
+  });
+  $('fReset').addEventListener('submit', async function(ev){
+    ev.preventDefault();
+    var token = $('rsCode').value.replace(/\s/g, ''), pass = $('rsPass').value;
+    setMsg('authErr', '');
+    if(!/^\d{6,10}$/.test(token)){ setMsg('authErr', 'Masukkan kode angka dari email.'); return; }
+    if(pass.length < 8){ setMsg('authErr', 'Password minimal 8 karakter.'); return; }
+    $('btnReset').disabled = true;
+    var v = await sb.auth.verifyOtp({email: pendingEmail, token: token, type: 'recovery'});
+    if(v.error){ $('btnReset').disabled = false; setMsg('authErr', authMsg(v.error)); return; }
+    var u = await sb.auth.updateUser({password: pass});
+    $('btnReset').disabled = false;
+    if(u.error){ setMsg('authErr', authMsg(u.error)); return; }
+    afterLogin(u.data.user);
   });
 
   /* ---------- profil / nick ---------- */
+  function nickErrMsg(e){
+    var m = (e && e.message) || '';
+    if(m.indexOf('NICK_COOLDOWN') >= 0){
+      var t = m.split('NICK_COOLDOWN:')[1] || '';
+      return 'Nick baru bisa diganti lagi pada ' + fmtDateTime(t.trim().slice(0, 20)) + '.';
+    }
+    if(m.indexOf('NICK_RETIRED') >= 0) return 'Nick itu sudah pernah dipakai dan tidak bisa dipakai lagi. Cari nick lain.';
+    if(e && e.code === '23505') return 'Nick sudah dipakai. Cari nick lain.';
+    return 'Gagal menyimpan: ' + m;
+  }
+
   async function afterLogin(user){
     if(started) return;
     started = true; me = user;
     var r = await sb.from('profiles').select(PCOLS).eq('id', user.id).maybeSingle();
-    if(r.error){ started = false; toast('Gagal memuat profil: ' + r.error.message); showScreen('auth'); return; }
+    if(r.error){
+      started = false;
+      toast('Gagal memuat profil: ' + r.error.message, 7000);
+      showScreen('auth'); authShow('fLogin');
+      return;
+    }
     if(r.data){ myProfile = r.data; startApp(); }
     else { showScreen('setup'); $('nick').focus(); }
   }
@@ -639,10 +1004,7 @@
     $('btnNick').disabled = true;
     var r = await sb.from('profiles').insert({id: me.id, nick: nick}).select(PCOLS).single();
     $('btnNick').disabled = false;
-    if(r.error){
-      setMsg('nickErr', r.error.code === '23505' ? 'Nick sudah dipakai, coba yang lain.' : 'Gagal menyimpan: ' + r.error.message);
-      return;
-    }
+    if(r.error){ setMsg('nickErr', nickErrMsg(r.error)); return; }
     myProfile = r.data;
     startApp();
   }
@@ -661,6 +1023,7 @@
   async function startApp(){
     showScreen('app');
     renderMe();
+    applyTheme(currentTheme());
     await loadConversations();
     markDelivered();
     subscribe();
@@ -673,7 +1036,7 @@
     var r = await sb.from('messages').select('*')
       .or('sender_id.eq.' + me.id + ',receiver_id.eq.' + me.id)
       .order('created_at', {ascending: false}).limit(500);
-    if(r.error){ toast('Gagal memuat chat: ' + r.error.message); return; }
+    if(r.error){ toast('Gagal memuat chat: ' + r.error.message, 6000); return; }
     var ids = {};
     (r.data || []).forEach(function(m){
       var other = m.sender_id === me.id ? m.receiver_id : m.sender_id;
@@ -695,7 +1058,6 @@
     });
     await sb.from('messages').update({delivered_at: now}).eq('receiver_id', me.id).is('delivered_at', null);
   }
-
   async function markReadRemote(id){
     if(!isVisible()) return;
     var rows = (msgs[id] || []).filter(function(m){ return m.sender_id === id && !m.read_at; });
@@ -703,6 +1065,24 @@
     var now = new Date().toISOString();
     rows.forEach(function(m){ m.read_at = now; if(!m.delivered_at) m.delivered_at = now; });
     await sb.from('messages').update({read_at: now}).eq('sender_id', id).eq('receiver_id', me.id).is('read_at', null);
+  }
+
+  /* ---------- centang ---------- */
+  function msgState(m){ return m.read_at ? 'read' : (m.delivered_at ? 'delivered' : 'sent'); }
+  var STATE_LABEL = {sent: 'Terkirim', delivered: 'Sampai', read: 'Dibaca'};
+  function tickEl(state, small){
+    var NS = 'http://www.w3.org/2000/svg';
+    var s = document.createElementNS(NS, 'svg');
+    s.setAttribute('viewBox', '0 0 17 12');
+    s.setAttribute('width', small ? '14' : '17');
+    s.setAttribute('height', small ? '10' : '12');
+    s.setAttribute('class', 'tick ' + state);
+    s.setAttribute('role', 'img');
+    s.setAttribute('aria-label', STATE_LABEL[state]);
+    function path(d){ var p = document.createElementNS(NS, 'path'); p.setAttribute('d', d); s.appendChild(p); }
+    path('M1 6.5L4.3 9.8L10.7 2.5');
+    if(state !== 'sent') path('M5.3 6.5L8.6 9.8L15 2.5');
+    return s;
   }
 
   /* ---------- daftar chat ---------- */
@@ -717,6 +1097,7 @@
   function previewText(m){
     if(m.kind === 'image') return m.body ? 'Foto: ' + m.body : 'Foto';
     if(m.kind === 'sticker') return 'Stiker';
+    if(m.kind === 'voice') return 'Pesan suara ' + fmtDur(m.media_dur || 0);
     return m.body;
   }
   function chatItem(id){
@@ -728,7 +1109,9 @@
     var mid = h('div', 'mid');
     mid.appendChild(h('b', '', dname(p)));
     var prev = h('span', 'prev');
-    if(last){
+    if(typingFrom[id]){
+      prev.appendChild(h('span', 'ptx typing', typingFrom[id] === 'recording' ? 'merekam suara...' : 'mengetik...'));
+    } else if(last){
       if(last.sender_id === me.id) prev.appendChild(tickEl(msgState(last), true));
       prev.appendChild(h('span', 'ptx', previewText(last)));
     } else prev.appendChild(h('span', 'ptx', 'Mulai ngobrol'));
@@ -794,7 +1177,7 @@
     var r = await sb.from('messages').select('*')
       .or('and(sender_id.eq.' + me.id + ',receiver_id.eq.' + id + '),and(sender_id.eq.' + id + ',receiver_id.eq.' + me.id + ')')
       .order('created_at', {ascending: false}).limit(300);
-    if(r.error){ toast('Gagal memuat pesan: ' + r.error.message); return; }
+    if(r.error){ toast('Gagal memuat pesan: ' + r.error.message, 6000); return; }
     msgs[id] = (r.data || []).slice().reverse();
     loaded[id] = true;
   }
@@ -802,14 +1185,13 @@
   function updateHeader(){
     if(!activeId) return;
     var p = profiles[activeId] || {nick: '...'};
-    var on = !!online[activeId];
+    var on = !!online[activeId], ty = typingFrom[activeId];
     $('cNick').textContent = dname(p);
     $('cAvatar').textContent = '';
     $('cAvatar').appendChild(avatar(p, 42, true));
     var st = $('cStatus');
-    st.className = 'status' + (on ? ' on' : '');
-    st.textContent = on ? 'Online'
-      : (p.last_seen ? 'Terakhir dilihat ' + dayLabel(p.last_seen).toLowerCase() + ' ' + fmtTime(p.last_seen) : 'Offline');
+    st.className = 'status' + (on || ty ? ' on' : '');
+    st.textContent = ty ? (ty === 'recording' ? 'merekam suara...' : 'mengetik...') : (on ? 'Online' : lastSeenText(p));
   }
 
   async function openChat(id){
@@ -818,7 +1200,7 @@
     $('app').classList.add('show-chat');
     $('empty').classList.add('hidden');
     $('chat').classList.remove('hidden');
-    closeTray();
+    closePanels();
     updateHeader();
     sb.from('profiles').select(PCOLS).eq('id', id).maybeSingle().then(function(r){
       if(r.data){ profiles[id] = r.data; if(activeId === id) updateHeader(); renderList(); }
@@ -837,9 +1219,99 @@
     return [Math.round(w * s), Math.round(hh * s)];
   }
 
+  /* ---------- pesan suara: pemutar ---------- */
+  var PLAY_SVG = '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>';
+  var PAUSE_SVG = '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 5h4v14H7zM13 5h4v14h-4z"/></svg>';
+  var voiceUI = {}, voicePlaying = null;
+
+  function waveHeights(seed, n){
+    var hs = [], x = 0, i;
+    for(i = 0; i < seed.length; i++) x = (x * 31 + seed.charCodeAt(i)) >>> 0;
+    for(i = 0; i < n; i++){ x = (x * 1664525 + 1013904223) >>> 0; hs.push(30 + Math.round((x >>> 24) / 255 * 70)); }
+    return hs;
+  }
+  function setVoiceState(id, playing){
+    var ui = voiceUI[id]; if(!ui) return;
+    ui.btn.innerHTML = playing ? PAUSE_SVG : PLAY_SVG;
+    ui.btn.setAttribute('aria-label', playing ? 'Jeda pesan suara' : 'Putar pesan suara');
+  }
+  function setVoiceProgress(id, frac, cur){
+    var ui = voiceUI[id]; if(!ui) return;
+    var n = Math.round(frac * ui.bars.length);
+    ui.bars.forEach(function(b, i){ b.classList.toggle('on', i < n); });
+    ui.dur.textContent = fmtDur(frac > 0 ? cur : (ui.m.media_dur || 0));
+  }
+  function voiceEl(m){
+    var wrap = h('div', 'vn');
+    var btn = h('button', 'vn-play'); btn.type = 'button';
+    btn.innerHTML = PLAY_SVG; btn.setAttribute('aria-label', 'Putar pesan suara');
+    var wave = h('div', 'vn-wave'), bars = [];
+    waveHeights(String(m.media_path || m.id), 30).forEach(function(hh){
+      var s = h('span'); s.style.height = hh + '%'; wave.appendChild(s); bars.push(s);
+    });
+    var dur = h('span', 'vn-dur', fmtDur(m.media_dur || 0));
+    wrap.appendChild(btn); wrap.appendChild(wave); wrap.appendChild(dur);
+    voiceUI[m.id] = {btn: btn, bars: bars, dur: dur, m: m};
+    btn.addEventListener('click', function(){ toggleVoice(m); });
+    wave.addEventListener('click', function(e){
+      if(voicePlaying && voicePlaying.id === m.id){
+        var r = wave.getBoundingClientRect(), d = m.media_dur || voicePlaying.audio.duration || 0;
+        if(d && isFinite(d)) voicePlaying.audio.currentTime = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)) * d;
+      } else toggleVoice(m);
+    });
+    if(voicePlaying && voicePlaying.id === m.id){
+      setVoiceState(m.id, !voicePlaying.audio.paused);
+      var d2 = m.media_dur || 0;
+      if(d2) setVoiceProgress(m.id, voicePlaying.audio.currentTime / d2, voicePlaying.audio.currentTime);
+    }
+    return wrap;
+  }
+  async function toggleVoice(m){
+    var cur = voicePlaying;
+    if(cur && cur.id === m.id){
+      if(cur.audio.paused) cur.audio.play(); else cur.audio.pause();
+      return;
+    }
+    if(cur){
+      cur.audio.pause();
+      setVoiceState(cur.id, false); setVoiceProgress(cur.id, 0, 0);
+      voicePlaying = null;
+    }
+    await ensureUrls([m.media_path]);
+    var c = urlCache[m.media_path];
+    if(!c){ toast('Gagal memuat suara' + (lastSignErr ? ': ' + lastSignErr : ''), 6000); return; }
+    var a = new Audio();
+    a.preload = 'auto'; a.src = c.url;
+    var me2 = {id: m.id, audio: a};
+    voicePlaying = me2;
+    a.addEventListener('play', function(){ setVoiceState(m.id, true); });
+    a.addEventListener('pause', function(){ setVoiceState(m.id, false); });
+    a.addEventListener('timeupdate', function(){
+      var d = m.media_dur || (isFinite(a.duration) ? a.duration : 0);
+      setVoiceProgress(m.id, d ? Math.min(1, a.currentTime / d) : 0, a.currentTime);
+    });
+    a.addEventListener('ended', function(){
+      setVoiceState(m.id, false); setVoiceProgress(m.id, 0, 0);
+      if(voicePlaying === me2) voicePlaying = null;
+    });
+    a.addEventListener('error', function(){
+      toast('Gagal memutar suara. Browser ini mungkin tidak mendukung formatnya.', 6000);
+      setVoiceState(m.id, false);
+      if(voicePlaying === me2) voicePlaying = null;
+    });
+    try{ await a.play(); }
+    catch(e){ toast('Tidak bisa memutar suara', 4000); if(voicePlaying === me2) voicePlaying = null; }
+  }
+
+  /* ---------- tampilan pesan ---------- */
   function msgEl(m){
     var mine = m.sender_id === me.id, kind = m.kind || 'text';
-    var b = h('div', 'msg ' + (mine ? 'out' : 'in') + (kind === 'image' ? ' media' : '') + (kind === 'sticker' ? ' sticker' : ''));
+    var cls = 'msg ' + (mine ? 'out' : 'in');
+    if(kind === 'image') cls += ' media';
+    if(kind === 'sticker') cls += ' sticker';
+    if(kind === 'voice') cls += ' voice';
+    if(kind === 'text' && onlyEmoji(m.body)) cls += ' bigemo';
+    var b = h('div', cls);
     if(kind === 'image' || kind === 'sticker'){
       var box = h('div', kind === 'sticker' ? 'stk' : 'mimg');
       box.dataset.path = m.media_path;
@@ -847,15 +1319,17 @@
         var d = fitSize(m.media_w, m.media_h);
         box.style.width = d[0] + 'px'; box.style.height = d[1] + 'px';
         box.addEventListener('click', function(){
-          var c = urlCache[m.media_path]; if(c) openLightbox(c.url);
+          var c = urlCache[m.media_path]; if(c && box.querySelector('img')) openLightbox(c.url);
         });
       }
       var c = urlCache[m.media_path];
       if(fresh(c)) attachImg(box, c.url);
       b.appendChild(box);
-      if(kind === 'image' && m.body) b.appendChild(h('div', 'txt cap', m.body));
+      if(kind === 'image' && m.body){ var cap = h('div', 'txt cap'); renderRich(cap, m.body); b.appendChild(cap); }
+    } else if(kind === 'voice'){
+      b.appendChild(voiceEl(m));
     } else {
-      b.appendChild(h('span', 'txt', m.body));
+      var tx = h('span', 'txt'); renderRich(tx, m.body); b.appendChild(tx);
     }
     var t = h('span', 'time', fmtTime(m.created_at));
     if(mine) t.appendChild(tickEl(msgState(m), false));
@@ -878,7 +1352,7 @@
   $('btnBack').addEventListener('click', function(){
     $('app').classList.remove('show-chat');
     activeId = null;
-    closeTray();
+    closePanels();
     $('chat').classList.add('hidden');
     $('empty').classList.remove('hidden');
     renderList();
@@ -901,31 +1375,31 @@
       var p = await sb.from('profiles').select(PCOLS).eq('id', other).maybeSingle();
       if(p.data) profiles[other] = p.data;
     }
-    if(m.receiver_id === me.id && !m.delivered_at){
-      var now = new Date().toISOString();
-      var reading = activeId === other && isVisible() && loaded[other];
-      m.delivered_at = now;
-      if(reading) m.read_at = now;
-      sb.from('messages').update(reading ? {delivered_at: now, read_at: now} : {delivered_at: now})
-        .eq('id', m.id).then(function(){});
+    if(m.receiver_id === me.id){
+      clearTyping(other);
+      if(!m.delivered_at){
+        var now = new Date().toISOString();
+        var reading = activeId === other && isVisible() && loaded[other];
+        m.delivered_at = now;
+        if(reading) m.read_at = now;
+        sb.from('messages').update(reading ? {delivered_at: now, read_at: now} : {delivered_at: now})
+          .eq('id', m.id).then(function(){});
+      }
     }
     pushMessage(m);
     if(activeId === other && loaded[other]) renderMessages();
+    updateHeader();
     renderList();
   }
-
   function onUpdate(m){
     var other = m.sender_id === me.id ? m.receiver_id : m.sender_id;
     var a = msgs[other]; if(!a) return;
-    a.forEach(function(x){
-      if(x.id === m.id){ x.delivered_at = m.delivered_at; x.read_at = m.read_at; }
-    });
+    a.forEach(function(x){ if(x.id === m.id){ x.delivered_at = m.delivered_at; x.read_at = m.read_at; } });
     if(activeId === other) renderMessages();
     renderList();
   }
-
   function subscribe(){
-    msgChannel = sb.channel('nimbus-msgs-' + me.id)
+    msgChannel = sb.channel('cimel-msgs-' + me.id)
       .on('postgres_changes', {event: 'INSERT', schema: 'public', table: 'messages', filter: 'receiver_id=eq.' + me.id},
         function(p){ onIncoming(p.new); })
       .on('postgres_changes', {event: 'INSERT', schema: 'public', table: 'messages', filter: 'sender_id=eq.' + me.id},
@@ -935,34 +1409,103 @@
       .subscribe();
   }
 
-  var sending = false;
   async function insertMessage(extra, to){
     var r = await sb.from('messages')
       .insert(Object.assign({sender_id: me.id, receiver_id: to, body: '', kind: 'text'}, extra))
       .select().single();
-    if(r.error){ toast('Pesan gagal terkirim: ' + r.error.message); return null; }
+    if(r.error) return {error: r.error.message};
     pushMessage(r.data);
     if(activeId === to) renderMessages();
     renderList();
-    return r.data;
+    return {data: r.data};
   }
 
+  /* ---------- keterangan mengetik ---------- */
+  function setTyping(id, kind){
+    clearTimeout(typingTimers[id]);
+    typingFrom[id] = kind;
+    typingTimers[id] = setTimeout(function(){ delete typingFrom[id]; renderList(); updateHeader(); }, 4000);
+    renderList(); updateHeader();
+  }
+  function clearTyping(id){
+    clearTimeout(typingTimers[id]);
+    if(typingFrom[id]){ delete typingFrom[id]; updateHeader(); }
+  }
+  function sendTyping(kind, to){
+    to = to || activeId;
+    if(!presenceReady || !to) return;
+    var now = Date.now();
+    if(now - lastTypingSent < 1800) return;
+    lastTypingSent = now;
+    presenceCh.send({type: 'broadcast', event: 'typing', payload: {from: me.id, to: to, kind: kind}});
+  }
+
+  /* ---------- komposer ---------- */
+  var sending = false;
+  function hasText(){ return $('input').value.trim().length > 0; }
+  function updateSendIcon(){
+    $('btnSend').classList.toggle('has-text', hasText() || !!rec);
+    $('btnSend').setAttribute('aria-label', rec ? 'Kirim rekaman' : (hasText() ? 'Kirim' : 'Rekam suara'));
+  }
+  function inputChanged(){
+    var t = $('input');
+    t.style.height = 'auto';
+    t.style.height = Math.min(t.scrollHeight, 120) + 'px';
+    updateSendIcon();
+    if(hasText()) sendTyping('typing');
+  }
   async function sendMessage(){
     var input = $('input');
     var body = input.value.trim();
     if(!body || !activeId || sending) return;
     sending = true;
-    var m = await insertMessage({body: body, kind: 'text'}, activeId);
+    var r = await insertMessage({body: body, kind: 'text'}, activeId);
     sending = false;
-    if(m){ input.value = ''; input.style.height = 'auto'; input.focus(); }
+    if(r.error){ toast('Pesan gagal terkirim: ' + r.error, 6000); return; }
+    input.value = ''; input.style.height = 'auto';
+    updateSendIcon();
+    input.focus();
   }
-  $('composer').addEventListener('submit', function(e){ e.preventDefault(); sendMessage(); });
+  $('composer').addEventListener('submit', function(e){ e.preventDefault(); });
   $('input').addEventListener('keydown', function(e){
     if(e.key === 'Enter' && !e.shiftKey && !e.isComposing){ e.preventDefault(); sendMessage(); }
   });
-  $('input').addEventListener('input', function(){
-    this.style.height = 'auto';
-    this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+  $('input').addEventListener('input', inputChanged);
+  $('btnSend').addEventListener('click', function(){
+    if(rec){ stopRecording(true); return; }
+    if(hasText()) sendMessage(); else startRecording();
+  });
+
+  /* ---------- panel & menu ---------- */
+  function closePanels(){
+    $('tray').classList.add('hidden');
+    $('emojiPanel').classList.add('hidden');
+    $('attachMenu').classList.add('hidden');
+    $('btnEmoji').classList.remove('on');
+    trayEdit = false;
+  }
+  $('btnPlus').addEventListener('click', function(e){
+    e.stopPropagation();
+    var open = $('attachMenu').classList.contains('hidden');
+    closePanels();
+    if(open) $('attachMenu').classList.remove('hidden');
+  });
+  document.addEventListener('click', function(e){
+    if(!$('attachMenu').classList.contains('hidden') && !e.target.closest('#attachMenu')) $('attachMenu').classList.add('hidden');
+  });
+  $('btnEmoji').addEventListener('click', function(){
+    var open = $('emojiPanel').classList.contains('hidden');
+    closePanels();
+    if(open){ $('emojiPanel').classList.remove('hidden'); this.classList.add('on'); renderEmojiPanel(); }
+  });
+  $('mnuPhoto').addEventListener('click', function(){
+    closePanels();
+    if(!activeId) return;
+    $('fileImg').value = ''; $('fileImg').click();
+  });
+  $('mnuSticker').addEventListener('click', function(){
+    closePanels();
+    $('tray').classList.remove('hidden'); renderTray();
   });
 
   /* ---------- modal ---------- */
@@ -980,7 +1523,6 @@
   function openLightbox(url){ $('lbImg').src = url; openModal('lb'); }
 
   /* ---------- kirim foto ---------- */
-  $('btnImg').addEventListener('click', function(){ if(!activeId) return; $('fileImg').value = ''; $('fileImg').click(); });
   $('fileImg').addEventListener('change', async function(){
     var f = this.files[0]; if(!f || !activeId) return;
     try{
@@ -989,22 +1531,26 @@
       out.url = URL.createObjectURL(out.blob);
       openModal('mImage');   // openModal mereset pendingImg, jadi isi setelahnya
       pendingImg = out;
-      $('imgPrev').src = out.url; $('imgCap').value = '';
-    }catch(e){ toast(e.message || 'Gagal membaca gambar'); }
+      $('imgPrev').src = out.url; $('imgCap').value = ''; setMsg('imgErr', '');
+    }catch(e){ console.error(e); toast(e.message || 'Gagal membaca gambar', 7000); }
   });
   $('btnImgSend').addEventListener('click', async function(){
     if(!pendingImg || !activeId) return;
     var img = pendingImg, to = activeId, btn = this;
-    btn.disabled = true;
+    btn.disabled = true; setMsg('imgErr', '');
     var path = me.id + '/' + uuid() + '.jpg';
     var up = await sb.storage.from('chat-media').upload(path, img.blob, {contentType: 'image/jpeg'});
-    if(up.error){ toast('Gagal mengunggah: ' + up.error.message); btn.disabled = false; return; }
+    if(up.error){
+      console.error(up.error);
+      setMsg('imgErr', 'Gagal mengunggah: ' + up.error.message); btn.disabled = false; return;
+    }
     urlCache[path] = {url: img.url, t: Date.now()};
     var caption = $('imgCap').value.trim().slice(0, 500);
+    var r = await insertMessage({kind: 'image', media_path: path, media_w: img.w, media_h: img.h, body: caption}, to);
+    btn.disabled = false;
+    if(r.error){ setMsg('imgErr', 'Gagal mengirim: ' + r.error); return; }
     pendingImg = null;
     closeModals();
-    btn.disabled = false;
-    await insertMessage({kind: 'image', media_path: path, media_w: img.w, media_h: img.h, body: caption}, to);
   });
 
   /* ---------- tray stiker ---------- */
@@ -1012,7 +1558,6 @@
     var r = await sb.from('stickers').select('id,path').order('created_at', {ascending: false});
     stickers = r.data || [];
   }
-  function closeTray(){ $('tray').classList.add('hidden'); $('btnStk').classList.remove('on'); trayEdit = false; }
   function renderTray(){
     var g = $('trayGrid'); g.textContent = '';
     $('btnTrayEdit').textContent = trayEdit ? 'Selesai' : 'Hapus';
@@ -1032,31 +1577,26 @@
     });
     hydrate(g);
   }
-  $('btnStk').addEventListener('click', function(){
-    if(!activeId) return;
-    var open = $('tray').classList.contains('hidden');
-    if(open){ $('tray').classList.remove('hidden'); this.classList.add('on'); renderTray(); }
-    else closeTray();
-  });
   $('btnTrayEdit').addEventListener('click', function(){ trayEdit = !trayEdit; renderTray(); });
 
   async function deleteSticker(s){
     var r = await sb.from('stickers').delete().eq('id', s.id);
-    if(r.error){ toast('Gagal menghapus: ' + r.error.message); return; }
+    if(r.error){ toast('Gagal menghapus: ' + r.error.message, 5000); return; }
     stickers = stickers.filter(function(x){ return x.id !== s.id; });
     renderTray();
   }
   async function sendSticker(path){
     if(!activeId) return;
-    closeTray();
-    await insertMessage({kind: 'sticker', media_path: path, media_w: 512, media_h: 512}, activeId);
+    closePanels();
+    var r = await insertMessage({kind: 'sticker', media_path: path, media_w: 512, media_h: 512}, activeId);
+    if(r.error) toast('Stiker gagal terkirim: ' + r.error, 6000);
   }
 
   /* ---------- pembuat stiker ---------- */
   var stk = {bmp: null, w: 0, h: 0, zoom: 1, ox: 0, oy: 0, shape: 'circle', outline: true, text: ''};
   function openStickerMaker(){
     stk = {bmp: null, w: 0, h: 0, zoom: 1, ox: 0, oy: 0, shape: 'circle', outline: true, text: ''};
-    $('stkZoom').value = 1; $('stkOutline').checked = true; $('stkText').value = '';
+    $('stkZoom').value = 1; $('stkOutline').checked = true; $('stkOutline').disabled = false; $('stkText').value = '';
     [].forEach.call($('stkShapes').children, function(c){ c.classList.toggle('on', c.dataset.shape === 'circle'); });
     $('stkPick').classList.remove('hidden');
     $('stkEdit').classList.add('hidden');
@@ -1075,7 +1615,7 @@
       $('stkEdit').classList.remove('hidden');
       $('stkCancel').classList.add('hidden');
       drawSticker();
-    }catch(e){ toast(e.message || 'Gagal membaca gambar'); }
+    }catch(e){ toast(e.message || 'Gagal membaca gambar', 6000); }
   });
 
   function shapePath(ctx, shape, e){
@@ -1089,7 +1629,6 @@
     ctx.arcTo(x, y, x + w, y, r);
     ctx.closePath();
   }
-
   function drawSticker(){
     var c = $('stkCanvas'), ctx = c.getContext('2d');
     ctx.clearRect(0, 0, 512, 512);
@@ -1129,7 +1668,6 @@
       ctx.restore();
     }
   }
-
   (function(){
     var c = $('stkCanvas'), drag = null;
     c.addEventListener('pointerdown', function(e){
@@ -1147,7 +1685,6 @@
     c.addEventListener('pointerup', end);
     c.addEventListener('pointercancel', end);
   })();
-
   $('stkShapes').addEventListener('click', function(e){
     var b = e.target.closest('[data-shape]'); if(!b) return;
     stk.shape = b.dataset.shape;
@@ -1162,27 +1699,95 @@
   async function saveSticker(andSend){
     if(!stk.bmp) return;
     var to = activeId;
-    $('btnStkSave').disabled = $('btnStkSend').disabled = true;
+    var b1 = $('btnStkSave'), b2 = $('btnStkSend');
+    b1.disabled = b2.disabled = true;
     var blob = await toBlob($('stkCanvas'), 'image/webp', 0.92);
-    if(!blob){ toast('Gagal membuat stiker'); $('btnStkSave').disabled = $('btnStkSend').disabled = false; return; }
+    if(!blob){ toast('Gagal membuat stiker', 5000); b1.disabled = b2.disabled = false; return; }
     var ext = blob.type === 'image/png' ? 'png' : 'webp';
     var path = me.id + '/stickers/' + uuid() + '.' + ext;
     var up = await sb.storage.from('chat-media').upload(path, blob, {contentType: blob.type});
-    if(up.error){ toast('Gagal mengunggah: ' + up.error.message); $('btnStkSave').disabled = $('btnStkSend').disabled = false; return; }
+    if(up.error){ toast('Gagal mengunggah: ' + up.error.message, 7000); b1.disabled = b2.disabled = false; return; }
     var r = await sb.from('stickers').insert({owner_id: me.id, path: path}).select('id,path').single();
-    $('btnStkSave').disabled = $('btnStkSend').disabled = false;
-    if(r.error){ toast('Gagal menyimpan stiker: ' + r.error.message); return; }
+    b1.disabled = b2.disabled = false;
+    if(r.error){ toast('Gagal menyimpan stiker: ' + r.error.message, 7000); return; }
     urlCache[path] = {url: URL.createObjectURL(blob), t: Date.now()};
     stickers.unshift(r.data);
     closeModals();
     toast('Stiker disimpan');
     if(!$('tray').classList.contains('hidden')) renderTray();
-    if(andSend && to){ activeId = to; await insertMessage({kind: 'sticker', media_path: path, media_w: 512, media_h: 512}, to); closeTray(); }
+    if(andSend && to){
+      var m = await insertMessage({kind: 'sticker', media_path: path, media_w: 512, media_h: 512}, to);
+      if(m.error) toast('Stiker gagal terkirim: ' + m.error, 6000);
+      closePanels();
+    }
   }
   $('btnStkSave').addEventListener('click', function(){ saveSticker(false); });
   $('btnStkSend').addEventListener('click', function(){ saveSticker(true); });
 
-  /* ---------- foto profil ---------- */
+  /* ---------- pesan suara: rekam & kirim ---------- */
+  var rec = null;
+  async function startRecording(){
+    if(rec || !activeId) return;
+    if(!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.MediaRecorder)){
+      toast('Browser ini belum mendukung rekam suara.', 6000); return;
+    }
+    var stream;
+    try{ stream = await navigator.mediaDevices.getUserMedia({audio: true}); }
+    catch(e){ toast('Izin mikrofon ditolak. Aktifkan lewat pengaturan situs di browser.', 7000); return; }
+    var mime = '';
+    ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg;codecs=opus'].some(function(t){
+      if(MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(t)){ mime = t; return true; }
+      return false;
+    });
+    var mr;
+    try{ mr = mime ? new MediaRecorder(stream, {mimeType: mime, audioBitsPerSecond: 32000}) : new MediaRecorder(stream); }
+    catch(e){ stream.getTracks().forEach(function(t){ t.stop(); }); toast('Gagal memulai rekaman.', 5000); return; }
+    var r = {mr: mr, stream: stream, chunks: [], t0: Date.now(), to: activeId, cancel: false, timer: null, mime: mr.mimeType || mime || 'audio/webm'};
+    rec = r;
+    mr.ondataavailable = function(e){ if(e.data && e.data.size) r.chunks.push(e.data); };
+    mr.onstop = function(){
+      clearInterval(r.timer);
+      r.stream.getTracks().forEach(function(t){ t.stop(); });
+      $('composer').classList.remove('recording');
+      if(rec === r) rec = null;
+      updateSendIcon();
+      if(r.cancel) return;
+      var dur = Date.now() - r.t0;
+      if(dur < 800){ toast('Rekaman terlalu pendek.'); return; }
+      sendVoice(new Blob(r.chunks, {type: r.mime}), Math.round(dur / 1000), r.to);
+    };
+    mr.start(250);
+    closePanels();
+    $('composer').classList.add('recording');
+    $('recTime').textContent = '0:00';
+    updateSendIcon();
+    sendTyping('recording', r.to);
+    r.timer = setInterval(function(){
+      var s = Math.floor((Date.now() - r.t0) / 1000);
+      $('recTime').textContent = fmtDur(s);
+      sendTyping('recording', r.to);
+      if(s >= 120) stopRecording(true);
+    }, 300);
+  }
+  function stopRecording(send){
+    if(!rec) return;
+    rec.cancel = !send;
+    try{ rec.mr.stop(); }catch(e){}
+  }
+  $('btnRecCancel').addEventListener('click', function(){ stopRecording(false); });
+
+  async function sendVoice(blob, secs, to){
+    var base = (blob.type || 'audio/webm').split(';')[0];
+    var ext = base.indexOf('mp4') >= 0 ? 'm4a' : base.indexOf('ogg') >= 0 ? 'ogg' : base.indexOf('mpeg') >= 0 ? 'mp3' : 'webm';
+    var path = me.id + '/vn/' + uuid() + '.' + ext;
+    var up = await sb.storage.from('chat-media').upload(path, blob, {contentType: base});
+    if(up.error){ console.error(up.error); toast('Gagal mengunggah suara: ' + up.error.message, 8000); return; }
+    urlCache[path] = {url: URL.createObjectURL(blob), t: Date.now()};
+    var r = await insertMessage({kind: 'voice', media_path: path, media_dur: secs}, to);
+    if(r.error) toast('Pesan suara gagal terkirim: ' + r.error, 8000);
+  }
+
+  /* ---------- pengaturan profil ---------- */
   function renderProfileModal(){
     $('pfAvatar').textContent = '';
     $('pfAvatar').appendChild(avatar(myProfile, 96, false));
@@ -1193,8 +1798,16 @@
     $('pfName').value = myProfile.display_name || '';
     $('pfNick').value = myProfile.nick;
     $('pfBio').value = myProfile.bio || '';
-    updateBioCount(); setMsg('pfErr', '');
+    $('pfPass').value = '';
+    updateBioCount(); setMsg('pfErr', ''); setMsg('pfPassErr', '');
+    var until = myProfile.nick_changed_at ? new Date(myProfile.nick_changed_at).getTime() + 3 * 86400000 : 0;
+    var locked = until > Date.now();
+    $('pfNick').disabled = locked;
+    $('pfNickNote').textContent = locked
+      ? 'Nick baru bisa diganti lagi pada ' + fmtDateTime(new Date(until).toISOString()) + '.'
+      : 'Nick hanya bisa diganti 3 hari sekali. Nick lama tidak bisa dipakai lagi oleh siapa pun.';
     renderProfileModal();
+    applyTheme(currentTheme());
     openModal('mProfile');
   }
   $('btnProfile').addEventListener('click', openProfileEditor);
@@ -1207,41 +1820,35 @@
     var bio = $('pfBio').value.trim().slice(0, 150);
     var btn = this;
     setMsg('pfErr', '');
-    if(!/^[a-z0-9_.]{3,20}$/.test(nick)){
-      setMsg('pfErr', 'Nick 3-20 karakter: huruf kecil, angka, titik, atau garis bawah.');
-      return;
+    var upd = {display_name: name || null, bio: bio || null};
+    if(nick !== myProfile.nick){
+      if(!/^[a-z0-9_.]{3,20}$/.test(nick)){
+        setMsg('pfErr', 'Nick 3-20 karakter: huruf kecil, angka, titik, atau garis bawah.');
+        return;
+      }
+      upd.nick = nick;
     }
     btn.disabled = true;
-    var r = await sb.from('profiles')
-      .update({display_name: name || null, nick: nick, bio: bio || null})
-      .eq('id', me.id).select(PCOLS).single();
+    var r = await sb.from('profiles').update(upd).eq('id', me.id).select(PCOLS).single();
     btn.disabled = false;
-    if(r.error){
-      setMsg('pfErr', r.error.code === '23505' ? 'Nick sudah dipakai, coba yang lain.' : 'Gagal menyimpan: ' + r.error.message);
-      return;
-    }
+    if(r.error){ setMsg('pfErr', nickErrMsg(r.error)); return; }
     myProfile = r.data;
     renderMe(); renderList(); closeModals();
     toast('Profil diperbarui');
   });
 
-  /* ---------- lihat profil teman ---------- */
-  $('btnViewProfile').addEventListener('click', function(){
-    var p = profiles[activeId]; if(!p) return;
-    var on = !!online[p.id];
-    $('vAvatar').textContent = '';
-    $('vAvatar').appendChild(avatar(p, 120, true));
-    $('vName').textContent = dname(p);
-    $('vNick').textContent = '@' + p.nick;
-    var st = $('vStatus');
-    st.className = 'status' + (on ? ' on' : '');
-    st.textContent = on ? 'Online'
-      : (p.last_seen ? 'Terakhir dilihat ' + dayLabel(p.last_seen).toLowerCase() + ' ' + fmtTime(p.last_seen) : 'Offline');
-    var bio = $('vBio');
-    bio.textContent = p.bio || 'Belum ada bio.';
-    bio.classList.toggle('empty-bio', !p.bio);
-    openModal('mView');
+  $('btnPfPass').addEventListener('click', async function(){
+    var pass = $('pfPass').value;
+    setMsg('pfPassErr', '');
+    if(pass.length < 8){ setMsg('pfPassErr', 'Password minimal 8 karakter.'); return; }
+    this.disabled = true;
+    var r = await sb.auth.updateUser({password: pass});
+    this.disabled = false;
+    if(r.error){ setMsg('pfPassErr', authMsg(r.error)); return; }
+    $('pfPass').value = '';
+    toast('Password disimpan. Sekarang kamu bisa masuk dengan email dan password.', 5000);
   });
+
   $('btnPickAvatar').addEventListener('click', function(){ $('fileAvatar').value = ''; $('fileAvatar').click(); });
   $('fileAvatar').addEventListener('change', async function(){
     var f = this.files[0]; if(!f) return;
@@ -1252,6 +1859,7 @@
       var c = document.createElement('canvas'); c.width = c.height = 256;
       c.getContext('2d').drawImage(bmp.src, (bmp.w - side) / 2, (bmp.h - side) / 2, side, side, 0, 0, 256, 256);
       var blob = await toBlob(c, 'image/jpeg', 0.88);
+      if(!blob) throw new Error('Gagal memproses gambar');
       var path = me.id + '/avatar.jpg';
       var up = await sb.storage.from('avatars').upload(path, blob, {contentType: 'image/jpeg', upsert: true});
       if(up.error) throw new Error(up.error.message);
@@ -1271,6 +1879,23 @@
     renderMe(); renderProfileModal(); renderList();
   });
 
+  /* ---------- lihat profil teman ---------- */
+  $('btnViewProfile').addEventListener('click', function(){
+    var p = profiles[activeId]; if(!p) return;
+    var on = !!online[p.id];
+    $('vAvatar').textContent = '';
+    $('vAvatar').appendChild(avatar(p, 120, true));
+    $('vName').textContent = dname(p);
+    $('vNick').textContent = '@' + p.nick;
+    var st = $('vStatus');
+    st.className = 'status' + (on ? ' on' : '');
+    st.textContent = on ? 'Online' : lastSeenText(p);
+    var bio = $('vBio');
+    if(p.bio) renderRich(bio, p.bio); else bio.textContent = 'Belum ada bio.';
+    bio.classList.toggle('empty-bio', !p.bio);
+    openModal('mView');
+  });
+
   /* ---------- online / offline ---------- */
   function syncOnline(){
     var st = presenceCh.presenceState();
@@ -1279,14 +1904,21 @@
     renderList(); updateHeader();
   }
   function startPresence(){
-    presenceCh = sb.channel('nimbus-presence', {config: {presence: {key: me.id}}});
+    presenceCh = sb.channel('cimel-presence', {config: {presence: {key: me.id}, broadcast: {self: false}}});
     presenceCh
       .on('presence', {event: 'sync'}, syncOnline)
       .on('presence', {event: 'leave'}, function(p){
         if(profiles[p.key]) profiles[p.key].last_seen = new Date().toISOString();
       })
+      .on('broadcast', {event: 'typing'}, function(msg){
+        var p = (msg && msg.payload) || {};
+        if(p.to === me.id && p.from) setTyping(p.from, p.kind);
+      })
       .subscribe(function(status){
-        if(status === 'SUBSCRIBED') presenceCh.track({online_at: new Date().toISOString()});
+        if(status === 'SUBSCRIBED'){
+          presenceReady = true;
+          presenceCh.track({online_at: new Date().toISOString()});
+        }
       });
     touchSeen();
     beatTimer = setInterval(function(){ if(isVisible()) touchSeen(); }, 60000);
@@ -1305,6 +1937,7 @@
   /* ---------- keluar & mulai ---------- */
   $('btnLogout').addEventListener('click', async function(){
     clearInterval(beatTimer);
+    if(rec) stopRecording(false);
     if(msgChannel) await sb.removeChannel(msgChannel);
     if(presenceCh){ await presenceCh.untrack(); await sb.removeChannel(presenceCh); }
     touchSeen();
@@ -1312,6 +1945,8 @@
     location.reload();
   });
 
+  applyTheme(currentTheme());
+  authShow('fLogin');
   sb.auth.getSession().then(function(r){
     if(r.data && r.data.session) afterLogin(r.data.session.user);
     else showScreen('auth');
