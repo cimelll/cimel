@@ -37,7 +37,6 @@ input:focus{border-color:var(--ac)}
 .btn:disabled{opacity:.5}
 .lk{color:var(--ac);font-size:15px;text-align:center;display:block;padding:2px}
 .err{color:var(--er);font-size:14px;min-height:1em}
-.ok{color:var(--ac);font-size:14px;min-height:1em}
 .av{width:44px;height:44px;border-radius:50%;background:var(--me);color:var(--ac);display:grid;place-items:center;font-weight:700;font-size:18px;overflow:hidden}
 .av img{width:100%;height:100%;object-fit:cover}
 .big .av{width:72px;height:72px;font-size:28px}
@@ -84,19 +83,15 @@ input:focus{border-color:var(--ac)}
 
 <section class="screen" id="auth">
   <form class="card" id="af" novalidate>
-    <h1 id="at">Ci Chat's</h1>
+    <h1>Ci Chat's</h1>
     <p class="muted" id="as"></p>
     <input type="text" id="nick" data-m="signup" placeholder="Nickname" maxlength="30">
-    <input type="text" id="uid" data-m="signup" placeholder="ID unik (a–z, 0–9, _)" maxlength="20" autocapitalize="off" autocomplete="off">
-    <input type="email" id="email" data-m="login signup forgot verify" placeholder="Alamat Gmail" autocomplete="email">
-    <input type="password" id="pass" data-m="login signup recovery" placeholder="Password (min. 6 karakter)" minlength="6" autocomplete="current-password">
+    <input type="text" id="uid" placeholder="ID unik (a–z, 0–9, _)" maxlength="60" autocapitalize="off" autocomplete="username">
+    <input type="password" id="pass" placeholder="Password (min. 6 karakter)" minlength="6" autocomplete="current-password">
     <p class="err" id="ae"></p>
-    <p class="ok" id="ao"></p>
     <button class="btn" id="ab" type="submit"></button>
     <a class="lk" href="#" data-m="login" data-go="signup">Buat akun baru</a>
-    <a class="lk" href="#" data-m="login" data-go="forgot">Lupa password?</a>
-    <a class="lk" href="#" data-m="login" data-go="verify">Verifikasi email</a>
-    <a class="lk" href="#" data-m="signup forgot verify" data-go="login">Kembali ke masuk</a>
+    <a class="lk" href="#" data-m="signup" data-go="login">Sudah punya akun? Masuk</a>
   </form>
 </section>
 
@@ -153,6 +148,8 @@ input:focus{border-color:var(--ac)}
 const SB_URL='https://rxydkooczxrwqqrbjaly.supabase.co';
 const SB_KEY='sb_publishable_qHhIQ5xgOA3qZ1EOIzSp4Q_6r_g1n31';
 const sb=supabase.createClient(SB_URL,SB_KEY);
+const DOMAIN='cichat.app';
+const loginEmail=s=>s.includes('@')?s:`${s}@${DOMAIN}`;
 
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -181,10 +178,8 @@ const av=p=>`<div class="av">${p?.avatar_path?`<img src="${sb.storage.from('avat
 
 function humanErr(e){
  const m=(e?.message||'').toLowerCase();
- if(m.includes('invalid login'))return 'Email atau password salah.';
- if(m.includes('not confirmed'))return 'Email belum diverifikasi. Cek inbox lalu klik tautan verifikasi.';
- if(m.includes('already registered'))return 'Email sudah terdaftar. Silakan masuk.';
- if(m.includes('gmail'))return 'Gunakan alamat Gmail.';
+ if(m.includes('invalid login'))return 'ID/email atau password salah.';
+ if(m.includes('already registered'))return 'ID ini sudah terdaftar. Silakan masuk.';
  if(m.includes('rate limit')||m.includes('too many'))return 'Terlalu sering mencoba. Tunggu beberapa menit.';
  return e?.message||'Terjadi kesalahan. Coba lagi.';
 }
@@ -197,72 +192,53 @@ function uidErr(e){
 }
 function toast(t){const e=$('#toast');e.textContent=t;e.classList.remove('hide');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.add('hide'),3200);}
 
-let me=null,profile=null,mode='login',recovering=false,chan=null,curId=null,curOther=null,msgs=new Map(),convs=[],pendingHTML='',typingOn=false,typingT,lt,stm,lastT=0,pendingWall=null;
+let me=null,profile=null,mode='login',chan=null,curId=null,curOther=null,msgs=new Map(),convs=[],pendingHTML='',typingOn=false,typingT,lt,stm,lastT=0,pendingWall=null;
 const online=new Set(),urlCache=new Map();
 
-/* ---------- AUTH ---------- */
+/* ---------- AUTH (tanpa verifikasi email) ---------- */
 const T={
- login:["Ci Chat's",'Masuk dengan email dan password.','Masuk'],
- signup:['Buat akun','Pakai Gmail aktif. Kami kirim tautan verifikasi.','Daftar'],
- forgot:['Lupa password','Tautan reset akan dikirim ke email kamu.','Kirim tautan reset'],
- recovery:['Password baru','Masukkan password baru untuk akunmu.','Simpan password'],
- verify:['Verifikasi email','Klik tautan di email, lalu masuk. Belum menerima email?','Kirim ulang email']
+ login:["Ci Chat's",'Masuk dengan ID atau email dan password.','Masuk'],
+ signup:['Buat akun','Isi nickname, ID unik, dan password.','Daftar']
 };
 function setMode(m){
  mode=m;
  document.querySelectorAll('[data-m]').forEach(e=>e.classList.toggle('hide',!e.dataset.m.split(' ').includes(m)));
  const [t,s,b]=T[m];
- $('#at').textContent=t;$('#as').textContent=s;$('#ab').textContent=b;
- $('#ae').textContent='';$('#ao').textContent='';
+ $('#at')?.remove();
+ document.querySelector('#af h1').textContent=t;$('#as').textContent=s;$('#ab').textContent=b;
+ $('#uid').placeholder=m==='login'?'ID atau email':'ID unik (a–z, 0–9, _)';
+ $('#pass').autocomplete=m==='login'?'current-password':'new-password';
+ $('#ae').textContent='';
 }
 document.querySelectorAll('[data-go]').forEach(a=>a.onclick=e=>{e.preventDefault();setMode(a.dataset.go);});
 
 $('#af').onsubmit=async e=>{
  e.preventDefault();
- const email=$('#email').value.trim(),pass=$('#pass').value,btn=$('#ab');
- $('#ae').textContent='';$('#ao').textContent='';btn.disabled=true;
- const home=location.href.split('#')[0];
+ const idIn=$('#uid').value.trim().toLowerCase(),pass=$('#pass').value,btn=$('#ab');
+ $('#ae').textContent='';btn.disabled=true;
  try{
   if(mode==='login'){
-   const {error}=await sb.auth.signInWithPassword({email,password:pass});
+   if(!idIn||!pass)throw new Error('Isi ID dan password.');
+   const {error}=await sb.auth.signInWithPassword({email:loginEmail(idIn),password:pass});
    if(error)throw error;
-  }else if(mode==='signup'){
-   const nick=$('#nick').value.trim(),uid=$('#uid').value.trim().toLowerCase();
+  }else{
+   const nick=$('#nick').value.trim();
    if(!nick)throw new Error('Isi nickname.');
-   if(!/^[a-z0-9_]{3,20}$/.test(uid))throw new Error('ID harus 3–20 karakter: huruf kecil, angka, atau _.');
-   if(!email.toLowerCase().endsWith('@gmail.com'))throw new Error('Gunakan alamat Gmail.');
+   if(!/^[a-z0-9_]{3,20}$/.test(idIn))throw new Error('ID harus 3–20 karakter: huruf kecil, angka, atau _.');
    if(pass.length<6)throw new Error('Password minimal 6 karakter.');
-   const {data:free}=await sb.rpc('is_uid_free',{p:uid});
+   const {data:free}=await sb.rpc('is_uid_free',{p:idIn});
    if(!free)throw new Error('ID sudah dipakai. Pilih ID lain.');
-   const {error}=await sb.auth.signUp({email,password:pass,options:{data:{nickname:nick,uid_code:uid},emailRedirectTo:home}});
+   const {data,error}=await sb.auth.signUp({email:loginEmail(idIn),password:pass,options:{data:{nickname:nick,uid_code:idIn}}});
    if(error)throw error;
-   setMode('verify');
-   $('#ao').textContent='Email verifikasi sudah dikirim. Cek inbox atau folder spam.';
-  }else if(mode==='forgot'){
-   const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:home});
-   if(error)throw error;
-   $('#ao').textContent='Tautan reset sudah dikirim ke email kamu.';
-  }else if(mode==='recovery'){
-   if(pass.length<6)throw new Error('Password minimal 6 karakter.');
-   const {error}=await sb.auth.updateUser({password:pass});
-   if(error)throw error;
-   recovering=false;
-   await sb.auth.signOut();
-   setMode('login');
-   $('#ao').textContent='Password sudah diganti. Silakan masuk.';
-  }else if(mode==='verify'){
-   const {error}=await sb.auth.resend({type:'signup',email});
-   if(error)throw error;
-   $('#ao').textContent='Email verifikasi dikirim ulang.';
+   if(!data.session)throw new Error('Akun dibuat, tapi masih menunggu verifikasi. Matikan Confirm email di Supabase.');
   }
  }catch(err){$('#ae').textContent=humanErr(err);}
  finally{btn.disabled=false;}
 };
 
-sb.auth.onAuthStateChange(async (ev,session)=>{
- if(ev==='PASSWORD_RECOVERY'){recovering=true;setMode('recovery');return;}
- if(session&&!recovering)enterApp(session.user);
- if(!session)leaveApp();
+sb.auth.onAuthStateChange((ev,session)=>{
+ if(session)enterApp(session.user);
+ else leaveApp();
 });
 
 async function enterApp(user){
@@ -282,6 +258,7 @@ function leaveApp(){
  document.body.classList.remove('chatopen');
  $('#chat').classList.add('hide');$('#empty').classList.remove('hide');
  $('#modal').classList.add('hide');$('#app').classList.add('hide');$('#auth').classList.remove('hide');
+ $('#uid').value='';$('#pass').value='';
  setMode('login');
 }
 $('#logout').onclick=()=>sb.auth.signOut();
