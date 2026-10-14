@@ -6,11 +6,12 @@
 <title>Ci Chat's</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <style>
-:root{--bg:#EAF2FC;--sf:#fff;--tx:#16263A;--mu:#73869C;--ac:#2F7CF0;--me:#CFE4FF;--ln:#DDE8F5;--tk:#8EA2B8;--rd:#3B9BFF;--ok:#34C759;--er:#E0474C;color-scheme:light}
-[data-theme=dark]{--bg:#0A1522;--sf:#122033;--tx:#E6EEF8;--mu:#8198B4;--ac:#5CA8FF;--me:#1E3D62;--ln:#1D3149;--tk:#5F7796;--rd:#78BDFF;color-scheme:dark}
+@font-face{font-family:"iOS Emoji";src:url("fonts/NotoColorEmoji.ttf") format("truetype");font-display:swap}
+:root{--bg:#EAF2FC;--sf:#fff;--tx:#16263A;--mu:#73869C;--ac:#2F7CF0;--me:#CFE4FF;--ln:#DDE8F5;--tk:#8EA2B8;--rd:#34B7F1;--ok:#34C759;--er:#E0474C;color-scheme:light}
+[data-theme=dark]{--bg:#0A1522;--sf:#122033;--tx:#E6EEF8;--mu:#8198B4;--ac:#5CA8FF;--me:#1E3D62;--ln:#1D3149;--tk:#5F7796;--rd:#53BDEB;color-scheme:dark}
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;overflow:hidden}
-body{background:var(--bg);color:var(--tx);font:16px/1.4 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,"Apple Color Emoji","Segoe UI Emoji",sans-serif;-webkit-font-smoothing:antialiased}
+body{background:var(--bg);color:var(--tx);font:16px/1.4 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,"iOS Emoji","Apple Color Emoji","Segoe UI Emoji",sans-serif;-webkit-font-smoothing:antialiased}
 button,input{font:inherit;color:inherit}
 button{cursor:pointer;background:none;border:0;padding:0;display:inline-grid;place-items:center}
 input{outline:none}
@@ -51,16 +52,16 @@ input:focus{border-color:var(--ac)}
 .list{overflow:auto;flex:1}
 .item{display:flex;gap:12px;align-items:center;padding:12px 14px;cursor:pointer}
 .item:hover,.item.on{background:var(--bg)}
-.badge{background:var(--ac);color:#fff;border-radius:999px;min-width:20px;height:20px;padding:0 6px;font-size:12px;display:grid;place-items:center}
+.badge{background:var(--ac);color:#fff;border-radius:999px;min-width:22px;height:22px;padding:0 7px;font-size:12px;font-weight:600;display:grid;place-items:center}
 #empty{margin:auto;color:var(--mu);text-align:center;padding:20px}
 .chat{flex:1;display:flex;flex-direction:column;min-height:0}
 .msgs{flex:1;overflow:auto;padding:14px 14px 6px;display:flex;flex-direction:column;gap:6px}
+.day{align-self:center;background:var(--sf);color:var(--mu);font-size:12px;padding:4px 12px;border-radius:999px;margin:6px 0;box-shadow:0 1px 2px rgba(0,0,0,.06)}
 .bub{max-width:min(78%,520px);padding:8px 12px 6px;border-radius:18px;overflow-wrap:anywhere}
 .mine{align-self:flex-end;background:var(--me);border-bottom-right-radius:6px}
 .theirs{align-self:flex-start;background:var(--sf);border-bottom-left-radius:6px;box-shadow:0 1px 2px rgba(0,0,0,.06)}
-.meta{font-size:11px;color:var(--mu);text-align:right;margin-top:2px;white-space:nowrap}
-.tick{color:var(--tk);letter-spacing:-2px;margin-left:4px}
-.tick.rd{color:var(--rd)}
+.meta{display:flex;justify-content:flex-end;align-items:center;gap:3px;font-size:11px;color:var(--mu);margin-top:2px;white-space:nowrap}
+.tk{width:16px;height:12px;flex:none}
 .media{display:block;width:240px;max-width:100%;border-radius:12px;cursor:zoom-in}
 .bub audio{width:240px;max-width:100%;height:36px}
 .composer{display:flex;align-items:center;gap:6px;padding:8px 10px;padding-bottom:calc(8px + env(safe-area-inset-bottom,0px));background:var(--sf);border-top:1px solid var(--ln)}
@@ -179,6 +180,10 @@ const hm=t=>new Date(t).toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-dig
 const isToday=t=>new Date(t).toDateString()===new Date().toDateString();
 const short=t=>isToday(t)?hm(t):new Date(t).toLocaleDateString('id-ID',{day:'numeric',month:'short'});
 const seen=t=>isToday(t)?hm(t):new Date(t).toLocaleString('id-ID',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+const dayLabel=t=>{
+ const d=new Date(t),n=new Date(),diff=Math.round((new Date(n.toDateString())-new Date(d.toDateString()))/864e5);
+ return diff===0?'Hari ini':diff===1?'Kemarin':d.toLocaleDateString('id-ID',{day:'numeric',month:'long',year:'numeric'});
+};
 const fmtDur=s=>`${Math.floor(s/60)}:${String(Math.floor(s%60)).padStart(2,'0')}`;
 const preview=m=>!m?'Belum ada pesan':m.kind==='image'?'Foto':m.kind==='audio'?'Pesan suara':m.body;
 const av=p=>`<div class="av">${p?.avatar_path?`<img src="${sb.storage.from('avatars').getPublicUrl(p.avatar_path).data.publicUrl}" alt="">`:esc((p?.nickname||'?').charAt(0).toUpperCase())}</div>`;
@@ -199,7 +204,7 @@ function uidErr(e){
  if(m.includes('FORMAT'))return 'ID harus 3–20 karakter: huruf kecil, angka, atau _.';
  return humanErr(e);
 }
-function toast(t){const e=$('#toast');e.textContent=t;e.classList.remove('hide');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.add('hide'),2800);}
+function toast(t){const e=$('#toast');e.textContent=t;e.classList.remove('hide');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.add('hide'),3200);}
 
 let me=null,profile=null,mode='login',recovering=false,chan=null,curId=null,curOther=null,msgs=new Map(),convs=[],pendingHTML='',typingOn=false,typingT,lt,stm,lastT=0,rec=null,chunks=[],vnBlob=null,vnURL=null,vnDur=0,recT0=0,recTm=0,vnState='idle';
 const online=new Set(),urlCache=new Map();
@@ -307,12 +312,18 @@ function connect(){
   .on('postgres_changes',{event:'UPDATE',schema:'public',table:'messages'},onMsg)
   .subscribe(async s=>{if(s==='SUBSCRIBED')await chan.track({at:Date.now()});});
 }
+async function markDelivered(id){
+ await sb.from('messages').update({delivered_at:new Date().toISOString()}).eq('id',id).is('delivered_at',null);
+}
 function onMsg(p){
  const m=p.new;
+ // pesan sampai ke HP ini: centang dua abu
+ if(m.sender_id!==me.id&&!m.delivered_at)markDelivered(m.id);
  if(m.conversation_id===curId){
   msgs.set(m.id,m);
   renderMsgs(m.sender_id===me.id);
-  if(m.sender_id!==me.id&&!m.read_at)markRead();
+  // dibaca hanya kalau chat ini sedang dibuka dan layar aktif
+  if(m.sender_id!==me.id&&!m.read_at&&!document.hidden)markRead();
  }
  scheduleList();
 }
@@ -320,7 +331,6 @@ const scheduleList=()=>{clearTimeout(lt);lt=setTimeout(loadChats,350);};
 
 async function loadChats(){
  if(!me)return;
- // pesan yang sampai ke perangkat ini ditandai "terkirim" (centang dua)
  await sb.from('messages').update({delivered_at:new Date().toISOString()}).neq('sender_id',me.id).is('delivered_at',null);
  const [c,m]=await Promise.all([
   sb.from('conversations').select('id,created_at,user_a,user_b,a:profiles!user_a(id,nickname,uid_code,avatar_path,last_seen),b:profiles!user_b(id,nickname,uid_code,avatar_path,last_seen)'),
@@ -384,7 +394,8 @@ $('#back').onclick=()=>{
 };
 async function markRead(){
  if(!curId||!me||document.hidden)return;
- await sb.from('messages').update({read_at:new Date().toISOString()}).eq('conversation_id',curId).neq('sender_id',me.id).is('read_at',null);
+ const now=new Date().toISOString();
+ await sb.from('messages').update({read_at:now,delivered_at:now}).eq('conversation_id',curId).neq('sender_id',me.id).is('read_at',null);
 }
 function renderStatus(){
  if(!curOther)return;
@@ -392,18 +403,31 @@ function renderStatus(){
  el.classList.toggle('isOn',on&&!typingOn);
  el.textContent=typingOn?'sedang mengetik...':on?'online':curOther.last_seen?'terakhir dilihat '+seen(curOther.last_seen):'offline';
 }
+const TK_ONE='<path d="M1.5 6.5 5 10 11.5 2.5"/>';
+const TK_TWO='<path d="M1.5 6.5 5 10 11.5 2.5"/><path d="M5.5 6.5 9 10 15.5 2.5"/>';
+function tick(m){
+ if(m.sender_id!==me.id)return '';
+ const s=m.read_at?'rd':m.delivered_at?'dv':'sn';
+ const color=s==='rd'?'var(--rd)':'var(--tk)';
+ return `<svg class="tk" viewBox="0 0 17 12" style="color:${color}">${s==='sn'?TK_ONE:TK_TWO}</svg>`;
+}
 function bubble(m){
  const mine=m.sender_id===me.id;
  const body=m.kind==='image'?`<img class="media" data-path="${esc(m.storage_path)}" alt="Foto" onclick="window.open(this.src)">`
   :m.kind==='audio'?`<audio controls preload="metadata" data-path="${esc(m.storage_path)}"></audio>`
   :`<div>${esc(m.body)}</div>`;
- const tick=!mine?'':m.read_at?'<span class="tick rd">✓✓</span>':m.delivered_at?'<span class="tick">✓✓</span>':'<span class="tick">✓</span>';
- return `<div class="bub ${mine?'mine':'theirs'}">${body}<div class="meta">${hm(m.created_at)}${tick}</div></div>`;
+ return `<div class="bub ${mine?'mine':'theirs'}">${body}<div class="meta">${hm(m.created_at)}${tick(m)}</div></div>`;
 }
 function renderMsgs(bottom){
  const b=$('#msgs');
  const near=b.scrollHeight-b.scrollTop-b.clientHeight<120;
- b.innerHTML=[...msgs.values()].map(bubble).join('')+pendingHTML;
+ let html='',last='';
+ [...msgs.values()].sort((x,y)=>x.created_at.localeCompare(y.created_at)).forEach(m=>{
+  const k=new Date(m.created_at).toDateString();
+  if(k!==last){html+=`<div class="day">${dayLabel(m.created_at)}</div>`;last=k;}
+  html+=bubble(m);
+ });
+ b.innerHTML=html+pendingHTML;
  hydrate();
  if(bottom||near)b.scrollTop=b.scrollHeight;
 }
@@ -424,7 +448,7 @@ $('#composer').onsubmit=async e=>{
  if(!t||!curId)return;
  inp.value='';
  const {data,error}=await sb.from('messages').insert({conversation_id:curId,sender_id:me.id,kind:'text',body:t}).select().single();
- if(error){inp.value=t;return toast('Pesan gagal dikirim. Coba lagi.');}
+ if(error){inp.value=t;return toast('Pesan gagal dikirim: '+error.message);}
  msgs.set(data.id,data);renderMsgs(true);scheduleList();
 };
 $('#txt').oninput=()=>{
@@ -442,26 +466,29 @@ $('#emo').onclick=e=>{
  t.focus();t.setSelectionRange(s+ins.length,s+ins.length);
 };
 
-/* ---------- FOTO ---------- */
+/* ---------- FOTO & KIRIM FILE ---------- */
 $('#btn-clip').onclick=()=>$('#file').click();
 $('#file').onchange=e=>{const f=e.target.files[0];e.target.value='';if(f)sendMedia(f,'image',null);};
 async function sendMedia(blob,kind,dur){
  if(!curId)return;
  if(kind==='image'&&(!/^image\/(jpeg|png|webp|gif)$/.test(blob.type)||blob.size>10*1048576))
   return toast('Pilih foto JPG, PNG, WEBP, atau GIF maksimal 10 MB.');
- const ext=blob.type.split('/')[1].replace('jpeg','jpg');
+ const ext=(blob.type.split('/')[1]||'bin').replace('jpeg','jpg');
  const cid=curId,path=`${cid}/${crypto.randomUUID()}.${ext}`;
  pendingHTML='<div class="bub mine">Mengunggah…</div>';renderMsgs(true);
- const {error:e1}=await sb.storage.from('chat-media').upload(path,blob,{contentType:blob.type});
- pendingHTML='';
- if(e1){renderMsgs();return toast('Gagal mengunggah: '+e1.message);}
- const {data,error:e2}=await sb.from('messages').insert({conversation_id:cid,sender_id:me.id,kind,storage_path:path,duration:dur}).select().single();
- if(e2){renderMsgs();return toast('Gagal mengirim: '+e2.message);}
- if(curId===cid)msgs.set(data.id,data);
- renderMsgs(true);scheduleList();
+ try{
+  const {error:e1}=await sb.storage.from('chat-media').upload(path,blob,{contentType:blob.type});
+  pendingHTML='';
+  if(e1){renderMsgs();return toast('Gagal mengunggah: '+e1.message);}
+  const {data,error:e2}=await sb.from('messages').insert({conversation_id:cid,sender_id:me.id,kind,storage_path:path,duration:dur}).select().single();
+  if(e2){renderMsgs();return toast('Gagal mengirim: '+e2.message);}
+  if(curId===cid)msgs.set(data.id,data);
+  renderMsgs(true);scheduleList();
+ }catch(err){pendingHTML='';renderMsgs();toast('Gagal mengirim: '+err.message);}
 }
 
 /* ---------- PESAN SUARA ---------- */
+const VN_MIME=['audio/webm;codecs=opus','audio/webm','audio/mp4','audio/ogg;codecs=opus'];
 function vnSet(s){
  vnState=s;
  $('#vn-main').innerHTML=s==='rec'?I.stop:I.mic;
@@ -486,23 +513,25 @@ $('#vn-send').onclick=()=>{const b=vnBlob,d=vnDur;if(!b)return;vnClose();sendMed
 $('#vn-main').onclick=async()=>{
  if(vnState==='rec'){rec.stop();return;}
  if(vnState==='prev')vnReset();
+ if(!window.isSecureContext)return toast('Rekam suara hanya bisa dibuka lewat https:// atau localhost.');
  if(!navigator.mediaDevices?.getUserMedia||!window.MediaRecorder)return toast('Browser ini belum mendukung rekam suara.');
  let stream;
  try{stream=await navigator.mediaDevices.getUserMedia({audio:true});}
- catch{return toast('Izin mikrofon ditolak. Aktifkan lewat pengaturan browser.');}
+ catch(err){return toast(err.name==='NotAllowedError'?'Izin mikrofon ditolak. Aktifkan di pengaturan browser.':'Mikrofon tidak bisa dipakai: '+err.message);}
+ const mime=VN_MIME.find(t=>MediaRecorder.isTypeSupported(t))||'';
  chunks=[];
- rec=new MediaRecorder(stream);
+ rec=new MediaRecorder(stream,mime?{mimeType:mime}:{});
  rec.ondataavailable=e=>{if(e.data.size)chunks.push(e.data);};
  rec.onstop=()=>{
   stream.getTracks().forEach(t=>t.stop());clearInterval(recTm);
-  if(!chunks.length)return vnSet('idle');
-  vnBlob=new Blob(chunks,{type:(rec.mimeType||'audio/webm').split(';')[0]});
+  if(!chunks.length){toast('Rekaman kosong, coba lagi.');return vnSet('idle');}
+  vnBlob=new Blob(chunks,{type:(rec.mimeType||mime||'audio/webm').split(';')[0]});
   vnDur=Math.max(1,Math.round((Date.now()-recT0)/1000));
   vnURL=URL.createObjectURL(vnBlob);
   $('#vn-audio').src=vnURL;
   vnSet('prev');
  };
- recT0=Date.now();rec.start();vnSet('rec');
+ recT0=Date.now();rec.start(250);vnSet('rec');
  recTm=setInterval(()=>$('#vn-time').textContent=fmtDur((Date.now()-recT0)/1000),250);
 };
 
